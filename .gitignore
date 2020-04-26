@@ -1,0 +1,11 @@
+pubspec.lock
+package-lock.json
+build
+.firebaserc
+.flutter*
+.packages
+.firebase
+.dart_tool
+
+
+
