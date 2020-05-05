@@ -8,7 +8,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 
 import 'package:flutter/services.dart';
-import 'package:flutter_clipboard_manager/flutter_clipboard_manager.dart';
 
 
 import 'package:image_picker/image_picker.dart' as MobImagePicker;
