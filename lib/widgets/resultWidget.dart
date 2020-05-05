@@ -5,15 +5,19 @@ import 'package:intl/intl.dart';
 import '../models/question.dart';
 import '../models/textRes.dart';
 import '../models/examResult.dart';
-import '../screens/viewResultScreen.dart';
+import '../routing/routeNames.dart';
+import '../locator.dart';
+import '../services/navigationService.dart';
 
 class ResultWidget extends StatelessWidget {
   final ExamResult examResult;
+  String category;
   int rank;
   bool pending = false;
 
   ResultWidget(
       {Key key,
+      @required this.category,
       @required this.rank,
       @required this.examResult})
       : super(key: key);
@@ -24,13 +28,16 @@ class ResultWidget extends StatelessWidget {
     }
 
     void _onTapForView() async {
+      locator<NavigationService>().navigateTo('/${Routes[2].route}/${category}/${rank}', arguments: this.examResult);
+      /*
       Navigator.of(context).push(
         new MaterialPageRoute<void>(
           builder: (BuildContext context) {
-            return ViewResultScreen(rank: rank, examResult: examResult);
+            return ViewResultScreen(category: category, rank: rank, examResult: examResult);
           },
         ),
       );
+      */
     }
     
     void _onTap() {

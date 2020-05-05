@@ -141,11 +141,12 @@ class QuizGameState extends State<QuizGameScreen> {
   }
 
   @override
+  /*
   void dispose() {
     _timer.cancel();
     super.dispose();
   }
-
+  */
   @override
   void initState() {
     super.initState();
@@ -178,6 +179,7 @@ class QuizGameState extends State<QuizGameScreen> {
   }
 
   Future<bool> onBackPress() {
+    _timer.cancel();
     Navigator.pop(context);
     return Future.value(false);
   }

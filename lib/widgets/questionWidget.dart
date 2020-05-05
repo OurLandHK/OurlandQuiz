@@ -7,6 +7,9 @@ import '../models/textRes.dart';
 import '../models/examResult.dart';
 import '../screens/addQuestionScreen.dart';
 import '../screens/viewQuestionScreen.dart';
+import '../routing/routeNames.dart';
+import '../locator.dart';
+import '../services/navigationService.dart';
 
 class QuestionWidget extends StatelessWidget {
   final Question question;
@@ -39,13 +42,17 @@ class QuestionWidget extends StatelessWidget {
     }
 
     void _onTapForView() async {
+      locator<NavigationService>().navigateTo('/${QuestionRoute}/${question.id}', arguments: this.question);
+      /*
       Navigator.of(context).push(
         new MaterialPageRoute<void>(
           builder: (BuildContext context) {
-            return ViewQuestionScreen(question: question);
+            getPageRoute(ViewQuestionScreen(question: question, questionId: question.id), '/${Routes[1].route}/${question.id}');
+            return ViewQuestionScreen(question: question, questionId: question.id);
           },
         ),
       );
+      */
     }
     //String title = this.searchingMsg.text;
     void _onTap() {

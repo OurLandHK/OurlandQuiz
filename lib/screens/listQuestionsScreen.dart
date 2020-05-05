@@ -29,7 +29,8 @@ final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
 class ListQuestionsScreen extends StatefulWidget {
   final String category;
-  ListQuestionsScreen({Key key, @required this.category});
+  final String userId;
+  ListQuestionsScreen({Key key, @required this.category, @required this.userId});
 
   @override
   State createState() => new ListQuestionsState();
@@ -50,8 +51,13 @@ class ListQuestionsState extends State<ListQuestionsScreen> {
   @override
   void initState() {
     super.initState();
-    _newTitleLabel = widget.category;
-    questionService.getQuestionList(widget.category, this.updateQuestionList);
+    if(widget.category != null) {
+      _newTitleLabel = widget.category;
+      questionService.getQuestionList(widget.category, this.updateQuestionList);
+    } else {
+       _newTitleLabel = widget.userId;
+      questionService.getQuestionListByUserId(widget.userId, this.updateQuestionList);     
+    }
     //initPlatformState();
   }
 
@@ -107,7 +113,9 @@ class ListQuestionsState extends State<ListQuestionsScreen> {
         child: SafeArea(
           top: false,
           bottom: false,
-          child: body
+          child: SingleChildScrollView(
+            child: body
+          ),
         ),
 
       ),

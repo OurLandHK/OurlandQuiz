@@ -56,6 +56,10 @@ class TextRes {
   String get LABEL_USER_ID => "User ID";
   String get LABEL_PASSCODE=> "PASSCODE";
   String get LABEL_ID_PASSCODE_WRONG => "ID or Passcode wrong";
+  String get LABEL_UPDATE_USER_FAIL => "User update Failer";
+  String get LABEL_USER_NAME => "User Name";
+  String get LABEL_UPDATE_USER => "Udpate User";
+  String get LABEL_SHARE_TO_CLIPBOARD => 'Share to ClipBoard';
   List<String> get QUESTION_STATUS_OPTIONS => ["等待審批", "撤回", "審批"];
   List<String> get USER_SETTING_MENU=>["創作清單","設定","登入其他戶口"];
 

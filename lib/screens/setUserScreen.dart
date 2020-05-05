@@ -13,24 +13,22 @@ import '../models/userModel.dart';
 
 final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
-class GetUserScreen extends StatefulWidget {
-  GetUserScreen({Key key});
+class SetUserScreen extends StatefulWidget {
+  SetUserScreen({Key key});
 
   @override
-  State createState() => new GetUserState();
+  State createState() => new SetUserState();
 }
 
-class GetUserState extends State<GetUserScreen> {
-  String _id = "";
-  String _passcode = "";
+class SetUserState extends State<SetUserScreen> {
+  String _name = "";
   User _user;
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
-    _id = user.id;
-    _passcode = user.passcode;
+    _name = user.name;
     super.initState();
   }
 
@@ -55,7 +53,7 @@ class GetUserState extends State<GetUserScreen> {
     );
     return AlertDialog(
         title: Text(
-            textRes.USER_SETTING_MENU[2],
+            textRes.USER_SETTING_MENU[1],
             style: TextStyle(/*color: primaryColor,*/ fontWeight: FontWeight.bold),
           ),
         content: SingleChildScrollView(child: body),
@@ -65,64 +63,41 @@ class GetUserState extends State<GetUserScreen> {
 
   Widget idUI(BuildContext context, int focusIndex) {
     return TextFormField(
-      initialValue: this._id,
+      initialValue: this._name,
       textInputAction: TextInputAction.next,
       //textCapitalization: TextCapitalization.words,
       decoration: InputDecoration(
         border: UnderlineInputBorder(),
         filled: true,
         icon: Icon(Icons.verified_user),
-        labelText: textRes.LABEL_USER_ID,
+        labelText: textRes.LABEL_USER_NAME,
       ),
-      onChanged: (value) {setState(() {this._id = value;});},
-      onSaved: (String value) {this._id = value;},
+      onChanged: (value) {setState(() {this._name = value;});},
+      onSaved: (String value) {this._name = value;},
   // validator: _validateName,
     );
   }
 
-  Widget passcodeUI(BuildContext context, int focusIndex) {
-    return TextFormField(
-      initialValue: this._passcode,
-      textInputAction: TextInputAction.next,
-      //textCapitalization: TextCapitalization.words,
-      decoration: InputDecoration(
-        border: UnderlineInputBorder(),
-        filled: true,
-        icon: Icon(Icons.code),
-        labelText: textRes.LABEL_PASSCODE,
-      ),
-      onChanged: (value) {setState(() {this._passcode = value;});},
-      onSaved: (String value) {this._passcode = value;},
-  // validator: _validateName,
-    );
-  }  
-
-  void getUser() {
+  void setUser() {
     //if (_formKey.currentState.validate()) {
 //    If all data are correct then save data to out variables
       _formKey.currentState.save();
-      authService.getUser(this._id).then((newUser) {
-        print(newUser);
-        if(newUser != null && newUser.passcode == this._passcode) {
-          sharedPreferences.setString('userID', newUser.id).then((value) {
-            setState(() {
-              user = newUser;
-            });
-          });
+      user.name = this._name;
+      authService.updateUser(user).then((success){
+        if(success) {
           onBackPress();
         } else {
           _scaffoldKey.currentState.showSnackBar(
-              new SnackBar(content: new Text(textRes.LABEL_ID_PASSCODE_WRONG)));
-        }       
-      });
-      
+              new SnackBar(content: new Text(textRes.LABEL_UPDATE_USER_FAIL)));
+        }
+      });      
     //}
   }
 
   Widget _buildSubmit(BuildContext context) {
     return RaisedButton(
-            child: Text(textRes.LABEL_VERIFY),
-            onPressed: getUser,
+            child: Text(textRes.LABEL_UPDATE_USER),
+            onPressed: setUser,
           );
   }
 
@@ -133,9 +108,7 @@ class GetUserState extends State<GetUserScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
           idUI(context, 0),
-          const SizedBox(height: 5.0),
-          passcodeUI(context, 1),
-          const SizedBox(height: 5.0),                                      
+          const SizedBox(height: 5.0),                                   
           //_buildSubmit(context)
         ],
       )

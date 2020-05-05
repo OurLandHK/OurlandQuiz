@@ -1,7 +1,7 @@
 import 'package:firebase/firebase.dart' as WebFirebase;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'screens/homeScreen.dart';
+import 'package:flutter/widgets.dart';
 //import 'screens/signin.dart';
 import 'services/auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -11,6 +11,8 @@ import './screens/submitMainScreen.dart';
 import './screens/quizMainScreen.dart';
 import './screens/userMainScreen.dart';
 import './screens/resultMainScreen.dart';
+import './routing/router.dart' as router;
+import './services/navigationService.dart';
 
 import './locator.dart';
 
@@ -64,7 +66,6 @@ final ThemeData kDefaultTheme = new ThemeData(
       );
 
 void main() {
-  setupLocator();
 //  //For Web
   if (kIsWeb) {
     WebFirebase.initializeApp(
@@ -77,12 +78,20 @@ void main() {
       appId: "1:347244200453:web:1baf6aedc531c6b6aad26c",
       measurementId: "G-KE4ZB4TE5S");
   }
+  //initialRoute = '/me';
   setupLocator();
-
   runApp(new MaterialApp(
-    initialRoute: '/',
+    //initialRoute: '/',
+    //navigatorKey: locator<NavigationService>().navigatorKey,
+    onGenerateRoute: getFirstRoute,
     theme: ThemeData(primarySwatch: Colors.orange), 
     home: new SplashScreen()));
+}
+
+Route<dynamic> getFirstRoute(RouteSettings settings) {
+  if(settings.name != null) {
+    initialRoute = settings.name;
+  }
 }
 
 class SplashScreen extends StatefulWidget {
@@ -110,7 +119,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         categories = _cat;
         quizMain = QuizMainScreen();
         resultMain = ResultMainScreen(categories.keys.toList());
-        print(categories);
       });
     });
   }
@@ -118,8 +126,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     _context = context;
-    return LayoutTemplate();
-    /*
+    //return LayoutTemplate();
     return new Scaffold(
         body: Container(
       color: Colors.yellow,
@@ -141,7 +148,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         ),
       ),
     ));
-    */
   }
 }
 
@@ -149,8 +155,8 @@ void mainNavigationPage() {
   //if (blIsSignedIn) {
     Navigator.pushReplacement(
       _context,
-      //MaterialPageRoute(builder: (context) => LayoutTemplate(),),
-      MaterialPageRoute(builder: (context) => HomeScreen(),),
+      MaterialPageRoute(builder: (context) => LayoutTemplate(),),
+      //MaterialPageRoute(builder: (context) => HomeScreen(),),
     );
   /*
   } else {

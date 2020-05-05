@@ -1,7 +1,7 @@
 
 class User {
   String _id;
-  String _name;
+  String name;
   String _fcmToken;
   String _role;
   DateTime _createdAt;
@@ -9,14 +9,13 @@ class User {
   String _passcode;
   List<String> _questionIDs;
 
-  User(this._id, this._passcode, this._name, this._createdAt, this._updatedAt) {
+  User(this._id, this._passcode, this.name, this._createdAt, this._updatedAt) {
         this._fcmToken = '';
         this._role = 'user';
         this._questionIDs = [];
   }
 
   String get id => _id;
-  String get name => _name;
   String get passcode => _passcode;
   DateTime get createdAt => _createdAt;
   DateTime get updatedAt => _updatedAt;
@@ -39,8 +38,8 @@ class User {
       map['uuid'] = _id;
     }
 
-    if (_name != null) {
-      map['name'] = _name;
+    if (name != null) {
+      map['name'] = name;
     }
 
     if (_createdAt != null) {
@@ -71,7 +70,7 @@ class User {
 
   User.fromMap(Map<String, dynamic> map) {
     this._id = map['uuid'];
-    this._name = map['name'];
+    this.name = map['name'];
     if(map['questionIDs'] != null) {
       List<dynamic> tmp = map['questionIDs'];
       this._questionIDs = tmp.cast<String>();

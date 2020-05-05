@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
 import '../main.dart';
-import 'homeScreen.dart';
+
 
 //==================This is the Login Screen for the app==================
 class SignInScreen extends StatefulWidget {
@@ -46,13 +46,7 @@ class _SignInScreenState extends State<SignInScreen> {
                       );
                     },
                   );
-                } else {
-                  //Navigate to the Homescreen
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => HomeScreen()),
-                  );
-                }
+                } 
               });
             },
           ),

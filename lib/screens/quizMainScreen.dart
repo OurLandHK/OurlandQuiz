@@ -47,7 +47,15 @@ class QuizMainState extends State<QuizMainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    Widget body = gameSet(context);      
+    Widget body = gameSet(context);     
+    return Container(
+        child: SafeArea(
+          top: false,
+          bottom: false,
+          child: body
+        ),
+      );
+    /* 
     return new Scaffold(
       key: _scaffoldKey,
       appBar: new AppBar(
@@ -75,6 +83,7 @@ class QuizMainState extends State<QuizMainScreen> {
         ),
       ),
     ); 
+    */
   }
 
   void _onTap(String category) async {
@@ -126,7 +135,12 @@ class QuizMainState extends State<QuizMainScreen> {
   }
 
   Widget gameSet(BuildContext context) {
-    List<Widget> buttonWidgets = [gameButton(context, "")];
+    List<Widget> buttonWidgets = [
+      Text(
+            textRes.LABEL_WELCOME_BACK + user.name,
+            style: TextStyle(/*color: primaryColor,*/ fontWeight: FontWeight.bold),
+          ),
+      gameButton(context, "")];
     quizCategories.forEach((category) {
       buttonWidgets.add(const SizedBox(height: 5.0));
       buttonWidgets.add(gameButton(context, category));

@@ -8,6 +8,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 
 import 'package:flutter/services.dart';
+import 'package:flutter_clipboard_manager/flutter_clipboard_manager.dart';
 
 
 import 'package:image_picker/image_picker.dart' as MobImagePicker;
@@ -23,19 +24,25 @@ import '../services/auth.dart';
 import '../models/question.dart';
 import '../helper/uiHelper.dart';
 import 'package:open_graph_parser/open_graph_parser.dart';
-import 'homeScreen.dart';
+
+import 'dart:html' as html;
+
 
 final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
 class ViewQuestionScreen extends StatefulWidget {
   final Question question;
-  ViewQuestionScreen({Key key, @required this.question});
+  final String questionId;
+  ViewQuestionScreen({@required this.question, @required this.questionId}) {
+    print('screen');
+  }
 
   @override
-  State createState() => new ViewQuestionState();
+  State createState() => new ViewQuestionState(question: this.question, questionId: this.questionId);
 }
 
 class ViewQuestionState extends State<ViewQuestionScreen> {
+  var url = html.window.location.href;
   File imageFile;
   //SharedPreferences prefs;
   //Question _currentQuestion;
@@ -44,7 +51,12 @@ class ViewQuestionState extends State<ViewQuestionScreen> {
   String _parentTitle = "";
   String _reference = "";
   bool _isSubmitDisable;
+  Question question;
+  final String questionId;  
 
+  ViewQuestionState({@required this.question, @required this.questionId}) {
+    print('state');
+  }
   final TextEditingController textEditingController = new TextEditingController();
   final ScrollController listScrollController = new ScrollController();
 
@@ -64,6 +76,7 @@ class ViewQuestionState extends State<ViewQuestionScreen> {
   @override
   void initState() {
     super.initState();
+    print('init state');
     
     int _userInputFields = 1 + 1 + 2 * 5 + 2 + 1; //title + header + option pair + link, desc+ button
     for(int i = 0; i < _userInputFields; i++) {
@@ -74,7 +87,7 @@ class ViewQuestionState extends State<ViewQuestionScreen> {
     List<String> dropdownList = categories.keys.toList();
     print(dropdownList);
     _tagDropDownMenuItems = getDropDownMenuItems(dropdownList, "");
-    if(widget.question == null) {  
+    if(this.question == null) {  
       _firstTag = _tagDropDownMenuItems[0].value;  
       _newTitleLabel = textRes.LABEL_NEW_QUESTION;
       _sendButtonText = new Text(textRes.LABEL_MISSING_NEW_QUESTION);
@@ -82,35 +95,44 @@ class ViewQuestionState extends State<ViewQuestionScreen> {
       _color = rng.nextInt(MEMO_COLORS.length);
       _isSubmitDisable = true;
       _descController = TextEditingController(text:'');
+      if(this.questionId != null && this.questionId.length > 0) {
+        initPlatformState();
+      }     
     } else {
-      _firstTag = widget.question.tags[0];
-      _addMode = false;
-      _tags = widget.question.tags;
-      _options = widget.question.options;
-      for(int i = 0; i < _options.length; i++) {
-        if(widget.question.answers.contains(_options[i])) {
-          _answers[i] = true;
-        }
-      }
-      _desc = widget.question.explanation;
-      _parentTitle = widget.question.title;
-      _reference = widget.question.referenceUrl;
-      _newTitleLabel = _parentTitle;
-
-      _color = widget.question.color;
-      _isSubmitDisable = false;
-      _descController = TextEditingController(text: widget.question.explanation);
+      updateUI();
     }
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.
   initPlatformState() async {
-    // If the widget was removed from the tree while the asynchronous platform
-    // message was in flight, we want to discard the reply rather than calling
-    // setState to update our non-existent appearance.
-    //if (!mounted) return;
+    print('initPlatformState');
+    questionService.getQuestion(this.questionId).then((question) {
+      if(question != null) {
+        this.question = question;
+        updateUI();
+      }
+    });
+  }
 
+  void updateUI() {
     setState(() {
+      _firstTag = this.question.tags[0];
+      _addMode = false;
+      _tags = this.question.tags;
+      _options = this.question.options;
+      for(int i = 0; i < _options.length; i++) {
+        if(this.question.answers.contains(_options[i])) {
+          _answers[i] = true;
+        }
+      }
+      _desc = this.question.explanation;
+      _parentTitle = this.question.title;
+      _reference = this.question.referenceUrl;
+      _newTitleLabel = _parentTitle;
+
+      _color = this.question.color;
+      _isSubmitDisable = false;
+      _descController = TextEditingController(text: this.question.explanation);
     });
   }
 
@@ -149,6 +171,7 @@ class ViewQuestionState extends State<ViewQuestionScreen> {
           _newTitleLabel,
           style: TextStyle(/*color: primaryColor,*/ fontWeight: FontWeight.bold),
         ),
+        actions: <Widget>[_buildShare(context)],
         centerTitle: true,
         elevation: 0.7,
         actionsIconTheme: Theme.of(context).primaryIconTheme,
@@ -201,6 +224,73 @@ class ViewQuestionState extends State<ViewQuestionScreen> {
     }
   }
 
+
+  Widget _buildShare(BuildContext context) {
+    Widget rv;
+    String msg = '${question.title}\n';
+    int i = 1;
+    question.options.forEach((element) {
+      msg += '${i++}. ${element}\n';
+    });
+    msg += '#${question.tags[0]}\n';
+    rv = Row(children: <Widget>[
+      RaisedButton(
+        child: Text(textRes.LABEL_SHARE_TO_CLIPBOARD),
+        onPressed: () async {
+          Clipboard.setData(ClipboardData(text: "$msg $url")).then((reult) {
+                        final snackBar = SnackBar(
+                          content: Text('Copied to Clipboard'),
+                          action: SnackBarAction(
+                            label: 'Undo',
+                            onPressed: () {},
+                          ),
+                        );
+                        Scaffold.of(context).showSnackBar(snackBar);
+                      });
+        },
+      )
+
+
+      
+      /*
+      RaisedButton(
+        child: Text('share to twitter'),
+        onPressed: () async {
+          var response = await FlutterShareMe().shareToTwitter(
+              url: url, msg: msg);
+          if (response == 'success') {
+            print('navigate success');
+          }
+        },
+      ),
+      RaisedButton(
+        child: Text('share to WhatsApp'),
+        onPressed: () {
+          FlutterShareMe()
+              .shareToWhatsApp(msg: msg);
+        },
+      ),
+      RaisedButton(
+        child: Text('share to shareFacebook'),
+        onPressed: () {
+          FlutterShareMe().shareToFacebook(
+              url: url, msg: msg);
+        },
+      ),
+      RaisedButton(
+        child: Text('share to System'),
+        onPressed: () async {
+          var response = await FlutterShareMe().shareToSystem(msg: msg);
+          if (response == 'success') {
+            print('navigate success');
+          }
+        },
+      )
+      */
+    ]);
+    return rv;
+  }
+
   Widget titleUI(BuildContext context, int focusIndex) {
     return TextFormField(
       enabled: _addMode,
@@ -242,7 +332,7 @@ class ViewQuestionState extends State<ViewQuestionScreen> {
   }
 
   Widget optionWidget(BuildContext context, int answerIndex) {
-    bool displayResult = user.questionIDs.contains(widget.question.id);
+    bool displayResult = (this.question != null && user.questionIDs.contains(this.question.id));
     BoxDecoration decoration;
     if(displayResult? _answers[answerIndex]:false) {
       decoration = BoxDecoration(
@@ -381,15 +471,7 @@ class ViewQuestionState extends State<ViewQuestionScreen> {
   Widget formUI(BuildContext context) {
     List<Widget> toolbarWidget = [];
     toolbarWidget.add(Expanded(flex: 1, child: new Text(textRes.LABEL_TOPIC)));
-    if(_addMode) {
-      toolbarWidget.add(Expanded(flex: 2, child: new DropdownButton(
-                  value: _firstTag,
-                  items: _tagDropDownMenuItems,
-                  onChanged: (String value) {setState(() {_firstTag = value;});},
-                )));
-    } else {
-      toolbarWidget.add(Expanded(flex: 2, child: new Text(_firstTag)));
-    }
+    toolbarWidget.add(Expanded(flex: 2, child: new Text(_firstTag)));
     Row toolbar = Row(children: toolbarWidget);
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -411,9 +493,8 @@ class ViewQuestionState extends State<ViewQuestionScreen> {
           optionWidget(context, 2),
           optionWidget(context, 3),
           optionWidget(context, 4),  
-          const SizedBox(height: 5.0),                                      
-
-          //_buildSubmit(context)
+          //const SizedBox(height: 5.0),
+          //_buildShare(context)                                   
         ],
       )
     );

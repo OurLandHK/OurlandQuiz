@@ -39,7 +39,6 @@ This project is a using flutter for web. Please refer to https://flutter.dev/doc
   		cd ..
   		firebase login
   		firebase use --add
-  		npm run generate_firebase_config
 	    ```
     * Debug the project
       ```bash

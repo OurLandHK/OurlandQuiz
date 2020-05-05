@@ -31,9 +31,10 @@ import '../widgets/reportWidget.dart';
 final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
 class ViewResultScreen extends StatefulWidget {
+  final String category;
   final ExamResult examResult;
   final int rank;
-  ViewResultScreen({Key key, @required this.rank, @required this.examResult});
+  ViewResultScreen({Key key, @required this.category, @required this.rank, @required this.examResult});
   //final int totalQuestion = 3;
 
   @override
@@ -43,45 +44,68 @@ class ViewResultScreen extends StatefulWidget {
 class ViewResultState extends State<ViewResultScreen> {
   //SharedPreferences prefs;
   //Question _currentQuestion;
+  ExamResult _examResult;
   String _newTitleLabel;
   String _username;
+  int rank;
   List<Question> _questions = [];
   List<String> _questionIDs = [];
 
   @override
   void initState() {
     super.initState();
-    int totalTime = widget.examResult.totalTimeIn100ms();
+    if(widget.examResult != null) {
+      rank = widget.rank;
+      _examResult = widget.examResult;
+      updateUI();
+      updateUser();
+    } else {
+      initPlatformState();
+    }
+    //_sendButtonText = new Text(textRes.LABEL_MISSING_NEW_QUESTION);
+  }
+
+  // Platform messages are asynchronous, so we initialize in an async method.
+  initPlatformState() async {
+    examService.getResultList(widget.category, this.updateResultList);
+  }
+
+  void updateResultList(List<ExamResult> examResults) {
+    examResults.sort((a, b) => a.totalTimeIn100ms().compareTo(b.totalTimeIn100ms()));
+    int rank = widget.rank;
+    if(examResults.length > widget.rank) {
+      rank = examResults.length;
+    }
+    _examResult = examResults[rank-1];
+    updateUI();
+    updateUser();    
+}
+
+  Future<void> updateUser() async {
+    List<Question> qList = [];
+    _questionIDs.forEach((id) async {
+      Question question = await questionService.getQuestion(id);
+      qList.add(question);
+    });
+    authService.getUser(_examResult.userId).then((value) {
+      setState(() {
+        this._questions = qList;
+        this._username = value.name;
+      });
+    });
+  }
+
+  void updateUI() {
+    int totalTime = _examResult.totalTimeIn100ms();
     int correct = 0;
-    widget.examResult.results.forEach((element) {
+    _examResult.results.forEach((element) {
       _questionIDs.add(element.questionId);
       if(element.correct) {
         correct++;
       }
     });
     _newTitleLabel = widget.rank.toString() + " Time: ${totalTime/10}" +
-        "  Correct $correct/${widget.examResult.results.length}";
-    initPlatformState();
-    //_sendButtonText = new Text(textRes.LABEL_MISSING_NEW_QUESTION);
-  }
-
-  // Platform messages are asynchronous, so we initialize in an async method.
-  initPlatformState() async {
-    // If the widget was removed from the tree while the asynchronous platform
-    // message was in flight, we want to discard the reply rather than calling
-    // setState to update our non-existent appearance.
-    //if (!mounted) return;
-    List<Question> qList = [];
-    _questionIDs.forEach((id) async {
-      Question question = await questionService.getQuestion(id);
-      qList.add(question);
-    });
-    authService.getUser(widget.examResult.userId).then((value) {
-      setState(() {
-        this._questions = qList;
-        this._username = value.name;
-      });
-    });
+        "  Correct $correct/${_examResult.results.length}";
   }
 
   Future<bool> onBackPress() {
@@ -94,7 +118,7 @@ class ViewResultState extends State<ViewResultScreen> {
     Widget body = Container();
     if(this._questions.length > 0) {
       body = new WillPopScope(
-        child: ReportWidget(this._questions, widget.examResult),
+        child: ReportWidget(this._questions, _examResult),
         onWillPop: onBackPress,
       );
     }

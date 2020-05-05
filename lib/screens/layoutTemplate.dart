@@ -8,6 +8,7 @@ import '../widgets/centeredView.dart';
 import '../widgets/navigationBar.dart';
 import '../widgets/navigationDrawer.dart';
 
+String initialRoute = '/';
 class LayoutTemplate extends StatelessWidget {
   const LayoutTemplate({Key key}) : super(key: key);
 
@@ -16,7 +17,7 @@ class LayoutTemplate extends StatelessWidget {
     return ResponsiveBuilder(
       builder: (context, sizingInformation) { 
         Scaffold scaffold = Scaffold(
-          drawer: NavigationDrawer(),
+          //drawer: NavigationDrawer(),
           backgroundColor: Colors.white,
           body: CenteredView(
             child: Column(
@@ -25,14 +26,18 @@ class LayoutTemplate extends StatelessWidget {
                   child: Navigator(
                     key: locator<NavigationService>().navigatorKey,
                     onGenerateRoute: generateRoute,
-                    initialRoute: Routes[0],
+                    //initialRoute: Routes[0],
+                    initialRoute: initialRoute,
                   ),
                 )
               ],
             ),
           ),
-          bottomNavigationBar: sizingInformation.deviceScreenType == DeviceScreenType.Mobile ?
+          bottomNavigationBar: NavigationBar(),
+          /*
+          bottomNavigationBar: sizingInformation.deviceScreenType != DeviceScreenType.Mobile ?
           NavigationBar(): null,
+          */
         );
         return scaffold;
       }

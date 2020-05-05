@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 
-import 'homeScreen.dart';
 import 'getUserScreen.dart';
+import 'setUserScreen.dart';
 import '../models/textRes.dart';
 import '../models/userModel.dart';
 import '../services/auth.dart';
+import '../routing/routeNames.dart';
+import '../locator.dart';
+import '../services/navigationService.dart';
 
 final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
@@ -38,7 +41,15 @@ class UserMainState extends State<UserMainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    Widget body = gameSet(context);      
+    Widget body = gameSet(context);   
+    return  Container(
+        child: SafeArea(
+          top: false,
+          bottom: false,
+          child: body
+        ),
+      );
+    /*   
     return new Scaffold(
       key: _scaffoldKey,
       appBar: new AppBar(
@@ -60,20 +71,29 @@ class UserMainState extends State<UserMainScreen> {
         ),
       ),
     ); 
+    */
   }
 
   void _onTap(String menuItem) async {
-    Navigator.of(context).push(
-      new MaterialPageRoute<void>(
-        builder: (BuildContext context) {
-          Widget rv = null;
-          if(menuItem == textRes.USER_SETTING_MENU[2]) {
-            rv= GetUserScreen();
-          }
-          return rv;
-        },
-      ),
-    );
+    if(menuItem == textRes.USER_SETTING_MENU[0]) {
+      locator<NavigationService>().navigateTo('/${Routes[3].route}/${user.name}');
+    } 
+    if(menuItem == textRes.USER_SETTING_MENU[1]) {
+      showDialog<void>(
+      context: context,
+      //barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return SetUserScreen();
+      }); 
+    }
+    if(menuItem == textRes.USER_SETTING_MENU[2]) {
+      showDialog<void>(
+      context: context,
+      //barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return GetUserScreen();
+      }); 
+    }
   }
 
   Widget menuButton(BuildContext context, String category) {
