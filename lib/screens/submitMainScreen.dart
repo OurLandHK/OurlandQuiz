@@ -6,6 +6,9 @@ import '../widgets/questionWidget.dart';
 import '../services/questionService.dart';
 import 'addQuestionScreen.dart';
 import 'listQuestionsScreen.dart';
+import '../routing/routeNames.dart';
+import '../locator.dart';
+import '../services/navigationService.dart';
 import '../main.dart';
 
 
@@ -85,13 +88,27 @@ class _SubmitMainState extends State<SubmitMainScreen> {
   }  
 
   Widget _buildDropDown() {
-    return Row(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.center, children: [Text(textRes.LABEL_PENDING_MESSAGE, textAlign: TextAlign.center,
-        ), DropdownButton(
+    return Row(
+            mainAxisAlignment: MainAxisAlignment.center, 
+            crossAxisAlignment: CrossAxisAlignment.center, 
+            children: [
+              Text(textRes.LABEL_PENDING_MESSAGE, textAlign: TextAlign.center), 
+              DropdownButton(
                 value: _messageStatus,
                 items: _dropDownMenuItems,
                 onChanged: (value) => onChangedStatus(value),
                 style: Theme.of(context).textTheme.subhead
-              )]);
+              ),
+              RaisedButton(
+                child: Text(textRes.LABEL_NEW_QUESTION),
+                onPressed: () {
+                Navigator.of(context).push(
+                  new MaterialPageRoute<void>(
+                    builder: (BuildContext context) {
+                      return new AddQuestionScreen(question: null);
+                    })
+                );
+              }),]);
   }
 
   Widget buildListView(BuildContext context) {
@@ -133,7 +150,7 @@ class _SubmitMainState extends State<SubmitMainScreen> {
   }
 
   void updateQuestionList(List<Question> questions) {
-    print("finish");
+    //print("finish");
     setState(() {
       this._questions = questions;
     });    
@@ -149,6 +166,8 @@ class _SubmitMainState extends State<SubmitMainScreen> {
   }
 
   void _onTap(String category) async {
+    locator<NavigationService>().navigateTo('/${Routes[1].route}/${category}');
+    /*
     Navigator.of(context).push(
       new MaterialPageRoute<void>(
         builder: (BuildContext context) {
@@ -156,6 +175,7 @@ class _SubmitMainState extends State<SubmitMainScreen> {
         },
       ),
     );
+    */
   }
 
   Widget catButton(BuildContext context, String category) {
@@ -215,6 +235,30 @@ class _SubmitMainState extends State<SubmitMainScreen> {
   Widget build(BuildContext context) {
     WidgetsBinding.instance
       .addPostFrameCallback((_) => _swapValuable(context));
+    return Container(
+                color: Colors.white,
+                child: SafeArea(
+                  top: false,
+                  bottom: false,
+                  child: SingleChildScrollView(
+                    child:Column(
+                      children: [
+                        catSet(context),
+                        buildListView(context),
+                        /*
+                        Stack(
+                          children: <Widget>[
+                            buildListView(context),
+                            buildLoading(),
+                          ],
+                        )
+                        */
+                      ]
+                    ), 
+                  )
+                )
+              );
+    /*
     return Scaffold(
           appBar: PreferredSize(
                 preferredSize: Size.fromHeight(MediaQuery.of(context).size.height/15), child:Container()
@@ -258,5 +302,6 @@ class _SubmitMainState extends State<SubmitMainScreen> {
                 )
               )
     );
+    */
   }
 }

@@ -115,8 +115,7 @@ class ListResultState extends State<ListResultScreen> {
   Widget report(BuildContext context) {
 
     Widget buildItem(int rank, ExamResult examResult, BuildContext context) {
-      //Widget rv = ExamResultWidget(examResult: examResult);
-      Widget rv = ResultWidget(examResult: examResult, rank: rank);
+      Widget rv = ResultWidget(category: widget.category, examResult: examResult, rank: rank);
       return rv;
     }    
 

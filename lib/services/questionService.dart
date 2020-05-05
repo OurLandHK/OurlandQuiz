@@ -283,7 +283,7 @@ class QuestionService {
         return randomQuestionIndexes.toList(); 
       });
     } else {
-      return getQuestionIDs(category).then((questions) {
+      return getQuestionIDsByCat(category).then((questions) {
         if(numOfQuestion > questions.length) {
           numOfQuestion = questions.length;
         }
@@ -302,7 +302,7 @@ class QuestionService {
     }
   }
 
-  Future<List<String>> getQuestionIDs(String category) async {
+  Future<List<String>> getQuestionIDsByCat(String category) async {
     List<String> rv = [];
     if(category.length != 0) {
       try {
@@ -353,7 +353,7 @@ class QuestionService {
         return webFirestore
             .collection('question').doc(id)
             .get().then((data) {
-              print("$id ${data.exists}");
+              //print("$id ${data.exists}");
               if(data.exists) {
                 Question rv = Question.fromMap(data.data());
                 return rv;
@@ -389,6 +389,47 @@ Future getQuestionList(String category, Function returnQuestionList) async {
         //For Web
   //      WebFirestore.SetOptions options;
         var webQuery = webFirestore.collection('question').where("tags", "array-contains", category);
+        webQuery.onSnapshot.listen((webSnapshot) {
+          webSnapshot.docs.forEach((doc) {
+            if(doc.exists) {
+              Map data = doc.data();
+              data['id'] = doc.id;
+              Question question = Question.fromMap(data); 
+              questions.add(question);
+            }
+          });
+          returnQuestionList(questions);
+        });
+      }     
+    } catch (exception) {
+      print(exception);
+      returnQuestionList(questions);
+    }
+  }
+
+    Future getQuestionListByUserId(String userId, Function returnQuestionList) async {
+    List<Question> questions = [];
+    // TODO
+    try {
+      if (!kIsWeb) {
+        //For mobile
+        var mobQuery = mobFirestore.collection('question').where("createdUserid", isEqualTo: userId);
+        List<MobFirestore.QuerySnapshot> snaps = await mobQuery.snapshots().toList();
+        snaps.forEach((element1) {
+          element1.documents.forEach((doc) {
+            if(doc.exists) {
+              Map data = doc.data;
+              data['id'] = doc.documentID;
+              Question question = Question.fromMap(data); 
+              questions.add(question);
+            }
+          });
+        });
+        returnQuestionList(questions);
+      } else {
+        //For Web
+  //      WebFirestore.SetOptions options;
+        var webQuery = webFirestore.collection('question').where("createdUserid", "==", userId);
         webQuery.onSnapshot.listen((webSnapshot) {
           webSnapshot.docs.forEach((doc) {
             if(doc.exists) {

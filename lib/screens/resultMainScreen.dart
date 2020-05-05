@@ -1,8 +1,8 @@
 import 'package:OurlandQuiz/models/textRes.dart';
 import 'package:flutter/material.dart';
-import '../models/question.dart';
-import 'homeScreen.dart';
-import 'listResultScreen.dart';
+import '../routing/routeNames.dart';
+import '../locator.dart';
+import '../services/navigationService.dart';
 
 
 class ResultMainScreen extends StatelessWidget {
@@ -16,6 +16,8 @@ class ResultMainScreen extends StatelessWidget {
   }
 
   void _onTap(BuildContext context, String category) async {
+    locator<NavigationService>().navigateTo('/${Routes[2].route}/${category}');
+    /*
     Navigator.of(context).push(
       new MaterialPageRoute<void>(
         builder: (BuildContext context) {
@@ -23,6 +25,7 @@ class ResultMainScreen extends StatelessWidget {
         },
       ),
     );
+    */
   }
 
   Widget catButton(BuildContext context, String category) {
@@ -76,6 +79,21 @@ class ResultMainScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return Container(
+                color: Colors.white,
+                child: SafeArea(
+                  top: false,
+                  bottom: false,
+                  child: SingleChildScrollView(
+                    child:Column(
+                      children: [
+                        catSet(context),
+                      ]
+                    ), 
+                  )
+                )
+              );
+    /*
     return Scaffold(
           appBar: PreferredSize(
                 preferredSize: Size.fromHeight(MediaQuery.of(context).size.height/15), child:Container()
@@ -96,5 +114,6 @@ class ResultMainScreen extends StatelessWidget {
                 )
               )
     );
+    */
   }
 }
