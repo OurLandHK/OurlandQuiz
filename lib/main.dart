@@ -13,6 +13,7 @@ import './screens/userMainScreen.dart';
 import './screens/resultMainScreen.dart';
 import './routing/router.dart' as router;
 import './services/navigationService.dart';
+import './models/textRes.dart';
 
 import './locator.dart';
 
@@ -42,22 +43,22 @@ final ThemeData kDefaultTheme = new ThemeData(
         )),
         //backgroundColor: Colors.black,
         textTheme: TextTheme(
-          headline: TextStyle(
+          headline1: TextStyle(
               fontFamily: 'Sans',
               fontWeight: FontWeight.bold,
               color: Colors.black,
               fontSize: 20),
-          body1: TextStyle(
+          bodyText1: TextStyle(
               fontFamily: 'Sans',
               fontWeight: FontWeight.bold,
               color: Colors.black,
               fontSize: 16),
-          body2: TextStyle(
+          bodyText2: TextStyle(
               fontFamily: 'Sans',
               fontWeight: FontWeight.normal,
               color: Colors.black,
               fontSize: 12),
-          subtitle: TextStyle(
+          subtitle1: TextStyle(
               fontFamily: 'Sans',
               fontWeight: FontWeight.normal,
               color: Colors.black,
@@ -67,7 +68,7 @@ final ThemeData kDefaultTheme = new ThemeData(
 
 void main() {
 //  //For Web
-  if (kIsWeb) {
+/*  if (kIsWeb) {
     WebFirebase.initializeApp(
       apiKey: "AIzaSyAcCCpASdf_PJ6TBk5KpvFmWm0DdTQBvlo",
       authDomain: "ourlandquiz.firebaseapp.com",
@@ -77,7 +78,7 @@ void main() {
       messagingSenderId: "347244200453",
       appId: "1:347244200453:web:1baf6aedc531c6b6aad26c",
       measurementId: "G-KE4ZB4TE5S");
-  }
+  }*/
   //initialRoute = '/me';
   setupLocator();
   runApp(new MaterialApp(
@@ -125,6 +126,10 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) {
+    double splashImageSize = 
+      (MediaQuery.of(context).size.width > MediaQuery.of(context).size.height) ? 
+      MediaQuery.of(context).size.height / 2 :
+      MediaQuery.of(context).size.width / 2;
     _context = context;
     //return LayoutTemplate();
     return new Scaffold(
@@ -135,14 +140,11 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
-            Text("榮光",
-                  style: TextStyle(fontSize: MediaQuery.of(context).size.width * 0.25)),
-            Text("教育",
-                  style: TextStyle(fontSize: MediaQuery.of(context).size.width * 0.25)),
+            Image(image: AssetImage('assets/images/Icon-512.png'), width: splashImageSize),
             Padding(
               padding: const EdgeInsets.all(8.0),
-              child: Text("委員會",
-                  style: TextStyle(fontSize: MediaQuery.of(context).size.width * 0.1)),
+              child: Text(textRes.LABBEL_TITLE,
+                  style: TextStyle(fontSize: MediaQuery.of(context).size.width * 0.05)),
             )
           ],
         ),

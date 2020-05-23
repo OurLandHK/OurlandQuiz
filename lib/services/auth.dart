@@ -8,7 +8,6 @@ import 'package:google_sign_in/google_sign_in.dart';
 import '../main.dart';
 import '../models/userModel.dart';
 import 'service.dart';
-import 'package:firebase/firebase.dart' as WebFirebase;
 
 User user;
 
@@ -144,6 +143,9 @@ class AuthService {
   // constructor
   AuthService() {
     String _userID = sharedPreferences.get("userID"); 
+    if (!kReleaseMode) {
+      _userID = "1586890205088";
+    }
     checkIsSignedIn(_userID).then((_blIsSignedIn) {
       //redirect to appropriate screen
       mainNavigationPage();
@@ -180,69 +182,39 @@ class AuthService {
 
   //Log in using google
   Future<dynamic> googleSignIn() async {
-    if (!kIsWeb) {
-      //For mobile
+    // Step 1
+    GoogleSignInAccount googleUser = await mobGoogleSignIn.signIn();
 
-      // Step 1
-      GoogleSignInAccount googleUser = await mobGoogleSignIn.signIn();
+    // Step 2
+    GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+    final AuthCredential credential = GoogleAuthProvider.getCredential(
+      accessToken: googleAuth.accessToken,
+      idToken: googleAuth.idToken,
+    );
+    AuthResult _res = await mobAuth.signInWithCredential(credential);
+    mobFirebaseUser = _res.user;
 
-      // Step 2
-      GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-      final AuthCredential credential = GoogleAuthProvider.getCredential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-      AuthResult _res = await mobAuth.signInWithCredential(credential);
-      mobFirebaseUser = _res.user;
-
-      return mobFirebaseUser;
-    } else {
-      //For web
-      var provider = new WebFirebase.GoogleAuthProvider();
-      try {
-        WebFirebase.UserCredential _userCredential = await webAuth.signInWithPopup(provider);
-        webFirebaseUser = _userCredential.user;
-      } catch (e) {
-        webFirebaseUser = null;
-        print("Error in sign in with google: $e");
-      }
-
-      return webFirebaseUser;
-    }
+    return mobFirebaseUser;
   }
 
   //Gets the userData
   Future<User> getUser(String _userID) async {
     User _user;
-    if (!kIsWeb) {
-      //For mobile
-      return mobFirestore.collection('User')
-          .document(_userID).get().then((snapshot) async {
-        if (snapshot.data != null) {
-          var map = snapshot.data;
-          map['updatedAt'] = DateTime.now();
-          _user = User.fromMap(map);
-        } 
-        return _user;
-      });
-    } else {
-      //For Web
-      return webFirestore.collection('User').doc(_userID).get().then((snapshot) async {
-        print(_userID);
-        if (snapshot.data() != null) {
-          var map = snapshot.data();
-          map['updatedAt'] = DateTime.now();
-          _user = User.fromMap(map);
-        } 
-        return _user;
-      });
-    }
+    return mobFirestore.collection('User')
+        .document(_userID).get().then((snapshot) async {
+      if (snapshot.data != null) {
+        var map = snapshot.data;
+        map['updatedAt'] = DateTime.now();
+        _user = User.fromMap(map);
+      } 
+      return _user;
+    });
   }
 
   //Update the data into the database
   Future<bool> updateUser(User _user) async {
     bool blReturn = false;
-    if (!kIsWeb) {
+    //if (!kIsWeb) {
       //For mobile
       var map = user.toMap();
       map['updatedAt'] = DateTime.now();
@@ -253,26 +225,19 @@ class AuthService {
           .then((onValue) async {
         blReturn = true;
       });
-    } else {
-      //For Web
-//      WebFirestore.SetOptions options;
-      var map = user.toMap();
-      map['updatedAt'] = DateTime.now();
-      await webFirestore.collection('User').doc(user.id).set(map).then((onValue) async {
-        blReturn = true;
-      });
-    }
     return blReturn;
   }
 
   void signOut() {
-    if (!kIsWeb) {
+    //if (!kIsWeb) {
       //For mobile
       mobAuth.signOut();
+    /*
     } else {
       //For web
       webAuth.signOut();
     }
+    */
   }
 }
 

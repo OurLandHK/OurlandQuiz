@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 
 import '../main.dart';
 import 'quizGameScreen.dart';
+import '../widgets/categoryMemo.dart';
 import '../models/textRes.dart';
 import '../services/auth.dart';
 
@@ -55,38 +56,16 @@ class QuizMainState extends State<QuizMainScreen> {
           child: body
         ),
       );
-    /* 
-    return new Scaffold(
-      key: _scaffoldKey,
-      appBar: new AppBar(
-        title: Column(children: [
-          Text(
-            textRes.LABEL_RECENT_RECORD,
-            style: TextStyle(/*color: primaryColor,*/ fontWeight: FontWeight.bold),
-          ),
-          /*
-          Text(
-            textRes.LABEL_WELCOME_BACK + user.name,
-            style: TextStyle(/*color: primaryColor,*/ fontWeight: FontWeight.bold),
-          ),
-          */
-        ]),
-        centerTitle: true,
-        elevation: 0.7,
-        actionsIconTheme: Theme.of(context).primaryIconTheme,
-      ),
-      body: Container(
-        child: SafeArea(
-          top: false,
-          bottom: false,
-          child: body
-        ),
-      ),
-    ); 
-    */
   }
 
   void _onTap(String category) async {
+    Navigator.push(context, 
+      MaterialPageRoute(
+        builder: (context) =>  QuizGameScreen(category: category)
+      ),
+    );
+
+    /*
     Navigator.of(context).push(
       new MaterialPageRoute<void>(
         builder: (BuildContext context) {
@@ -94,44 +73,7 @@ class QuizMainState extends State<QuizMainScreen> {
         },
       ),
     );
-  }
-
-  Widget gameButton(BuildContext context, String category) {
-    String title = category;
-    int totalQuestion = _totalQuestion;
-    if(category.length == 0) {
-      title = textRes.LABEL_QUICK_GAME;
-    } else {
-      totalQuestion = categories[category]['count'];
-    }
-    Widget rv = GestureDetector(
-          onTap: () {_onTap(category);},
-          child: Padding(
-            padding: const EdgeInsets.all(4.0),
-            child: Container(
-              padding: EdgeInsets.all(4.0),
-              decoration: BoxDecoration(
-                //color: MEMO_COLORS[this.question.color],
-                border: Border.all(width: 1, color: Colors.grey),
-                boxShadow: [
-                  new BoxShadow(
-                    color: Colors.grey,
-                    offset: new Offset(0.0, 2.5),
-                    blurRadius: 4.0,
-                    spreadRadius: 0.0
-                  )
-                ],
-                //borderRadius: BorderRadius.circular(6.0)
-                ),
-              child: Column(
-                children: [
-                  Row(children:[Text(title), Text(" : $totalQuestion")]),
-                ]
-              ),
-            ),
-          ),
-        );
-    return rv;
+    */
   }
 
   Widget gameSet(BuildContext context) {
@@ -140,10 +82,14 @@ class QuizMainState extends State<QuizMainScreen> {
             textRes.LABEL_WELCOME_BACK + user.name,
             style: TextStyle(/*color: primaryColor,*/ fontWeight: FontWeight.bold),
           ),
-      gameButton(context, "")];
+      CategoryMemo("", _onTap, ["${textRes.LABEL_TOTAL_QUESTION} : $_totalQuestion"])];
     quizCategories.forEach((category) {
+      int totalQuestion = _totalQuestion;
+      if(category.length != 0) {
+        totalQuestion = categories[category]['count'];
+      }
       buttonWidgets.add(const SizedBox(height: 5.0));
-      buttonWidgets.add(gameButton(context, category));
+      buttonWidgets.add(CategoryMemo(category, _onTap, ["${textRes.LABEL_TOTAL_QUESTION} : $totalQuestion"]));
     });
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),

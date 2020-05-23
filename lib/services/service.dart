@@ -3,6 +3,7 @@ import 'package:firebase/firebase.dart' as WebFirebase;
 import 'package:firebase/firestore.dart' as WebFirestore;
 import 'package:firebase_auth/firebase_auth.dart' as MobFirebaseAuth;
 import 'package:firebase_storage/firebase_storage.dart' as MobFirebaseStorage;
+import 'package:cloud_firestore_web/cloud_firestore_web.dart' as WebFireStore2;
 import 'package:google_sign_in/google_sign_in.dart';
 
 MobFirebaseAuth.FirebaseUser mobFirebaseUser;

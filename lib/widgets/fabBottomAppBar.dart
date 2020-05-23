@@ -14,6 +14,7 @@ class FABBottomAppBar extends StatefulWidget {
     this.height: 60.0,
     this.iconSize: 24.0,
     this.backgroundColor,
+    this.selectedBackgroundColor,
     this.color,
     this.selectedColor,
     this.notchedShape,
@@ -26,6 +27,7 @@ class FABBottomAppBar extends StatefulWidget {
   final double height;
   final double iconSize;
   final Color backgroundColor;
+  final Color selectedBackgroundColor;
   final Color color;
   final Color selectedColor;
   final NotchedShape notchedShape;
@@ -54,7 +56,9 @@ class FABBottomAppBarState extends State<FABBottomAppBar> {
         onPressed: _updateIndex,
       );
     });
-    items.insert(items.length >> 1, _buildMiddleTabItem());
+    if(widget.centerItemText != null) {
+      items.insert(items.length >> 1, _buildMiddleTabItem());
+    }
 
     return BottomAppBar(
       shape: widget.notchedShape,
@@ -92,6 +96,7 @@ class FABBottomAppBarState extends State<FABBottomAppBar> {
     ValueChanged<int> onPressed,
   }) {
     Color color = _selectedIndex == index ? widget.selectedColor : widget.color;
+    Color backgroundColor = _selectedIndex == index ? widget.selectedBackgroundColor : widget.backgroundColor;
     double _iconSize = item.text.length > 0 ? widget.iconSize: widget.height * 2.0 / 3.0;
     Widget icon = item.iconWidget == null ? item.iconData == null ? Container : Icon(item.iconData, color: color, size: _iconSize):
                     SizedBox( width: _iconSize, height: _iconSize, child: item.iconWidget);
@@ -103,7 +108,8 @@ class FABBottomAppBarState extends State<FABBottomAppBar> {
       child: SizedBox(
         height: widget.height,
         child: Material(
-          type: MaterialType.transparency,
+          color: backgroundColor,
+          //type: MaterialType.transparency,
           child: InkWell(
             onTap: () => onPressed(index),
             child: Column(

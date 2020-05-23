@@ -536,11 +536,13 @@ class AddQuestionState extends State<AddQuestionScreen> {
   }
 
   void rejectQuestion() {
+    widget.question.lastUpdateUserid = user.id;
     questionService.rejectPendingQuestion(widget.question);
     onBackPress();
   }
 
   void approveQuestion() {
+    widget.question.lastUpdateUserid = user.id;
     questionService.approvePendingQuestion(widget.question);
     onBackPress();
   }  

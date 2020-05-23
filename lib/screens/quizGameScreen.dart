@@ -1,10 +1,6 @@
 import 'dart:async';
-import 'dart:async';
-import 'dart:html';
-import 'dart:io';
-import 'dart:math';
+//import 'dart:html';
 
-import 'package:OurlandQuiz/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -28,7 +24,7 @@ import '../models/examResult.dart';
 import '../widgets/questionWidget.dart';
 import '../widgets/reportWidget.dart';
 
-final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
+//final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
 class QuizGameScreen extends StatefulWidget {
   final String category;
@@ -48,6 +44,11 @@ class QuizGameState extends State<QuizGameScreen> {
   int questionIndex = 0;
   List<String> _questionIDs;
   ExamResult _examResult;
+  Widget _overlayWidget;
+  OverlayState _overlayState;
+  OverlayEntry _overlayEntry;
+  TextStyle _questionTextStyle;
+  TextStyle _optionTextStyle;
 
   final TextEditingController _textController = new TextEditingController();
   //final ScrollController listScrollController = new ScrollController();
@@ -73,9 +74,9 @@ class QuizGameState extends State<QuizGameScreen> {
   int _maxQuestionTime = BaseQuestionTime;
 
   void nextQuestion(BuildContext context) {
-    print("Next question ID ${this._questionIDs[this.questionIndex]}");
+    //print("Next question ID ${this._questionIDs[this.questionIndex]}");
     questionService.getQuestion(this._questionIDs[this.questionIndex]).then((question) {
-      print("question ${question}");
+      //print("question ${question}");
       _questions.add(question);
       const oneTenthSec = const Duration(milliseconds: 100);
       if(_timer != null) {
@@ -92,14 +93,24 @@ class QuizGameState extends State<QuizGameScreen> {
         (Timer timer) => setState(
           () {
             if (_currentQuestionTime < 1) {
-              validAnswer(context);
+              validateAnswer(context);
             } else {
               _currentQuestionTime -= 1;
             }
           },
         ),
       );
+      TextStyle qtextStyle = pickTextStyle(context, question.title);
+      String maxOption = question.options[0];
+      question.options.forEach((element) { if(maxOption.length < element.length) maxOption =element; });
+      TextStyle otextStyle = qtextStyle;
+      if(maxOption.length > question.title.length) {
+        otextStyle = pickTextStyle(context, maxOption);
+      }
       setState(() {
+        _questionTextStyle = qtextStyle;
+        _optionTextStyle = otextStyle;
+        _newTitleLabel = "${textRes.LABEL_QUESTION}: ${questionIndex + 1}";
         _options = question.options;
         _textController.text = question.title;
         _tags = question.tags;
@@ -108,6 +119,20 @@ class QuizGameState extends State<QuizGameScreen> {
         _submitDisable = false;
       });
     });
+  }
+
+  TextStyle pickTextStyle(BuildContext context, String text) {
+    TextStyle rv = Theme.of(context).textTheme.subtitle1;
+      if(text.length > 10) {
+        rv = Theme.of(context).textTheme.subtitle2;
+      }
+      if(text.length > 30) {
+        rv = Theme.of(context).textTheme.bodyText1;
+      }
+      if(text.length > 50) {
+        rv = Theme.of(context).textTheme.bodyText2;
+      }
+    return rv;
   }
 
   void startTimer(BuildContext context) {
@@ -123,14 +148,8 @@ class QuizGameState extends State<QuizGameScreen> {
               _timer.cancel();
             });
           } else {
-            if(_start == 20) {
-              showOverlay(context, "set");
-            }
             if(_start == 30) {
-              showOverlay(context, "ready");
-            }
-            if(_start == 10) {
-              showOverlay(context, "go");
+              startCountdown(context, 3000);
             }
             _start = _start - 1;
           }
@@ -152,6 +171,7 @@ class QuizGameState extends State<QuizGameScreen> {
     super.initState();
     _examResult = new ExamResult(user.id);
     _newTitleLabel = widget.category;
+    _overlayWidget = Container();
     initPlatformState();
     //_sendButtonText = new Text(textRes.LABEL_MISSING_NEW_QUESTION);
   }
@@ -195,9 +215,9 @@ class QuizGameState extends State<QuizGameScreen> {
     examService.submitExamResult(cat, user, _examResult);
   }
 
-  void validAnswer(BuildContext context) async {
+  void validateAnswer(BuildContext context) async {
     _timer.cancel();
-    String state = "correct";
+    bool correct = true;
     List<String> userAnswerSet = [];
     for(int i = 0; i < this._answers.length; i++) {
       if(this._answers[i]) {
@@ -209,12 +229,12 @@ class QuizGameState extends State<QuizGameScreen> {
     int questionTime = _maxQuestionTime - _currentQuestionTime;
     if(userAnswerSet.toSet().intersection(this._questions[questionIndex].answers.toSet()).length !=
     userAnswerSet.toSet().union(this._questions[questionIndex].answers.toSet()).length) {
-      state = "wrong";
+      correct = false;
       questionTime = _maxQuestionTime;
     }
-    Result _result = new Result(this._questions[questionIndex].id, userAnswerSet, questionTime, state == "correct");
+    Result _result = new Result(this._questions[questionIndex].id, userAnswerSet, questionTime, correct);
     _examResult.results.add(_result);
-    await showOverlay(context, state);
+    await showResult(context, correct);
     questionIndex++;
     if(questionIndex < _questionIDs.length) {
       nextQuestion(context);
@@ -223,63 +243,55 @@ class QuizGameState extends State<QuizGameScreen> {
     }
   }
 
-  void showOverlay(BuildContext context, String state) async {
+  void showResult(BuildContext context, bool correct) async {
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
     double radius = (width > height) ? height/4 : width/4;
-    OverlayState overlayState = Overlay.of(context);
-    int wait = 2;
-    OverlayEntry overlayEntry;
-    switch(state) {
-        case "ready":
-        overlayEntry = OverlayEntry(
-          builder: (context) => Positioned(
-                top: height/2 - radius,
-                left: width/2 - radius,
-                child: Icon(Icons.traffic, color: Colors.red, size: radius * 2)
-            ));
-        wait = 1;
-        break;
-      case "set":
-        overlayEntry = OverlayEntry(
-          builder: (context) => Positioned(
-                top: height/2 - radius,
-                left: width/2 - radius,
-                child: Icon(Icons.traffic, color: Colors.yellow, size: radius * 2)
-            ));
-        wait = 1;
-        break;
-      case "go":
-        overlayEntry = OverlayEntry(
-          builder: (context) => Positioned(
-                top: height/2 - radius,
-                left: width/2 - radius,
-                child: Icon(Icons.traffic, color: Colors.green, size: radius * 2)
-            ));
-        wait = 1;
-        break;
-      case "correct":
-        overlayEntry = OverlayEntry(
-          builder: (context) => Positioned(
-                top: height/2 - radius,
-                left: width/2 - radius,
-                child: Icon(Icons.check_circle, color: Colors.yellow, size: radius * 2)
-            ));
-            break;
-      case "wrong":
-        overlayEntry = OverlayEntry(
-          builder: (context) => Positioned(
-                top: height/2 - radius,
-                left: width/2 - radius,
-                child: Icon(Icons.clear, color: Colors.blue, size: radius * 2)
-            ));
-          break;
+    int wait = 2000;
+    Widget child = null;
+    if(correct) {
+        child = Icon(Icons.check_circle, color: Colors.yellow, size: radius * 2);
+    } else {
+        child = Icon(Icons.clear, color: Colors.blue, size: radius * 2);
     }
-    overlayState.insert(overlayEntry);
+    setState(() {
+      _overlayWidget = child;
+    });
+    await Future.delayed(Duration(milliseconds: wait - 10));
+    setState(() {
+      _overlayWidget = Container();
+    });
+    print('remove result');
+    await Future.delayed(Duration(milliseconds: 10));
+  }
 
-    await Future.delayed(Duration(seconds: wait));
-
-    overlayEntry.remove();
+  void startCountdown(BuildContext context, int wait) async {
+    double width = MediaQuery.of(context).size.width;
+    double height = MediaQuery.of(context).size.height;
+    double radius = (width > height) ? height/4 : width/4;
+    setState(() {
+      _overlayWidget = Icon(Icons.traffic, color: Colors.red, size: radius * 2);
+    });
+    await Future.delayed(Duration(milliseconds: wait~/3 - 10));
+    setState(() {
+      _overlayWidget = Container();
+    });
+    await Future.delayed(Duration(milliseconds: 10));
+    setState(() {
+      _overlayWidget = Icon(Icons.traffic, color: Colors.yellow, size: radius * 2);
+    });
+    await Future.delayed(Duration(milliseconds: wait~/3- 10));
+    setState(() {
+      _overlayWidget = Container();
+    });
+    await Future.delayed(Duration(milliseconds: 10));
+    setState(() {
+      _overlayWidget = Icon(Icons.traffic, color: Colors.blue, size: radius * 2);
+    });
+    await Future.delayed(Duration(milliseconds: (wait/3).toInt() - 10));
+    setState(() {
+      _overlayWidget = Container();
+    });
   }
 
   @override
@@ -318,7 +330,7 @@ class QuizGameState extends State<QuizGameScreen> {
       );
     }
     return new Scaffold(
-      key: _scaffoldKey,
+      //key: _scaffoldKey,
       appBar: new AppBar(
         backgroundColor: MEMO_COLORS[_color],
         title: new Text(
@@ -327,43 +339,61 @@ class QuizGameState extends State<QuizGameScreen> {
         ),
         centerTitle: true,
         elevation: 0.7,
-        actionsIconTheme: Theme.of(context).primaryIconTheme,
+        /*
+        //actionsIconTheme: Theme.of(context).primaryIconTheme,
+        */
       ),
       body: Container(
         color: MEMO_COLORS[_color],
         //child: new Container(),
-        child: SafeArea(
-          top: false,
-          bottom: false,
-          child: body
-        ),
+        child: Stack(
+          children: [
+          SafeArea(
+            top: false,
+            bottom: false,
+            child: body
+          ),
+          Container(
+            alignment: Alignment.center,
+            child:
+              AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 250),
+                  reverseDuration: const Duration(milliseconds: 10),
+                  transitionBuilder: (Widget child, Animation<double> animation) {
+                    return ScaleTransition(child: child, scale: animation);
+                  },
+                  child: _overlayWidget
+              )
+          ),
+        ]),
 
       ),
     ); 
   } 
 
   Widget titleUI(BuildContext context) {
-    return TextFormField(
+    return 
+      TextFormField(
       enabled: false,
       controller: _textController,
       textInputAction: TextInputAction.next,
+      style: _questionTextStyle,
       //textCapitalization: TextCapitalization.words,
       decoration: InputDecoration(
-        border: UnderlineInputBorder(),
+        //border: UnderlineInputBorder(),
         filled: true,
-        icon: Icon(Icons.live_help),
-        hintText: textRes.HINT_QUESTION,
-        labelText: textRes.LABEL_QUESTION,
+        //icon: Icon(Icons.live_help),
+        //hintText: textRes.HINT_QUESTION,
+        //labelText: textRes.LABEL_QUESTION,
       ),
       minLines: 1,
-      maxLines: 10,
-    );
+      maxLines: 10,);
   }
 
   Widget tagUI(BuildContext context) {
     List<Chip> chips = [];
     this._tags.forEach((tag) {
-      chips.add(Chip(label: Text(tag)));
+      chips.add(Chip(label: Text(tag), labelStyle: _questionTextStyle));
     });
     return Wrap(runSpacing: 4.0, spacing: 8.0, children: chips);
   }
@@ -384,18 +414,17 @@ class QuizGameState extends State<QuizGameScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          Text("Question : ${questionIndex + 1}"),
-          const SizedBox(height: 12.0),
+          //const SizedBox(height: 12.0),
           titleUI(context),
           tagUI(context),
-          const SizedBox(height: 5.0),
-          answerHeader(context),
+          //const SizedBox(height: 2.0),
+          //answerHeader(context),
           optionWidget(context, 0), 
           optionWidget(context, 1),
           optionWidget(context, 2),
           optionWidget(context, 3),
           optionWidget(context, 4),  
-          const SizedBox(height: 5.0),                                        
+          const SizedBox(height: 1.0),                                        
           _buildSubmit(context)
         ],
       )
@@ -422,7 +451,7 @@ class QuizGameState extends State<QuizGameScreen> {
               setState(() {
                 _submitDisable = true;
               });
-              validAnswer(context);
+              validateAnswer(context);
             }:null,
             child:  Text(text)
           ));
@@ -461,7 +490,7 @@ class QuizGameState extends State<QuizGameScreen> {
         decoration: decoration,
         child: 
           FlatButton(
-            child: Text(this._options[index]), 
+            child: Text(this._options[index], style: _optionTextStyle), 
             onPressed:  () => {
               setState(() {
                 this._answers[index] = !this._answers[index];

@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class User {
   String _id;
@@ -78,12 +79,22 @@ class User {
       this._questionIDs = [];
     }
     if(map['createdAt'] != null) {
-      this._createdAt = map['createdAt'];
+      try{      
+        this._createdAt = map['createdAt'];
+      } catch (e) {
+        Timestamp timeStamp = map['createdAt'];
+        this._createdAt = timeStamp.toDate();
+      }
     } else {
       this._createdAt = DateTime.now();
     }
     if(map['updatedAt'] != null) {
-      this._updatedAt = map['updatedAt'];
+      try{      
+        this._updatedAt = map['updatedAt'];
+      } catch (e) {
+        Timestamp timeStamp = map['updatedAt'];
+        this._updatedAt = timeStamp.toDate();
+      }
     } else {
       this._updatedAt = DateTime.now();
     }

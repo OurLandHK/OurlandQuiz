@@ -10,6 +10,8 @@ import '../routing/routeNames.dart';
 import '../locator.dart';
 import '../services/navigationService.dart';
 import '../main.dart';
+import '../widgets/categoryMemo.dart';
+import '../models/textRes.dart';
 
 
 class SubmitMainScreen extends StatefulWidget {
@@ -167,60 +169,17 @@ class _SubmitMainState extends State<SubmitMainScreen> {
 
   void _onTap(String category) async {
     locator<NavigationService>().navigateTo('/${Routes[1].route}/${category}');
-    /*
-    Navigator.of(context).push(
-      new MaterialPageRoute<void>(
-        builder: (BuildContext context) {
-          return ListQuestionsScreen(category: category);
-        },
-      ),
-    );
-    */
-  }
-
-  Widget catButton(BuildContext context, String category) {
-    String title = category;
-    int totalQuestion = 0;
-    if(category.length == 0) {
-      title = textRes.LABEL_QUICK_GAME;
-    } else {
-      totalQuestion = categories[category]['count'];
-    }
-    Widget rv = GestureDetector(
-          onTap: () {_onTap(category);},
-          child: Padding(
-            padding: const EdgeInsets.all(4.0),
-            child: Container(
-              padding: EdgeInsets.all(4.0),
-              decoration: BoxDecoration(
-                //color: MEMO_COLORS[this.question.color],
-                border: Border.all(width: 1, color: Colors.grey),
-                boxShadow: [
-                  new BoxShadow(
-                    color: Colors.grey,
-                    offset: new Offset(0.0, 2.5),
-                    blurRadius: 4.0,
-                    spreadRadius: 0.0
-                  )
-                ],
-                //borderRadius: BorderRadius.circular(6.0)
-                ),
-              child: Column(
-                children: [
-                  Row(children:[Text(title), Text(" : $totalQuestion")]),
-                ]
-              ),
-            ),
-          ),
-        );
-    return rv;
   }
 
   Widget catSet(BuildContext context) {
     List<Widget> buttonWidgets = [];
     quizCategories.forEach((category) {
+      int totalQuestion = 0;
+      if(category.length != 0) {
+        totalQuestion = categories[category]['count'];
+      }
       buttonWidgets.add(const SizedBox(height: 5.0));
-      buttonWidgets.add(catButton(context, category));
+      buttonWidgets.add(CategoryMemo(category, _onTap, ["${textRes.LABEL_TOTAL_QUESTION} : $totalQuestion"]));
     });
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -245,63 +204,10 @@ class _SubmitMainState extends State<SubmitMainScreen> {
                       children: [
                         catSet(context),
                         buildListView(context),
-                        /*
-                        Stack(
-                          children: <Widget>[
-                            buildListView(context),
-                            buildLoading(),
-                          ],
-                        )
-                        */
                       ]
                     ), 
                   )
                 )
               );
-    /*
-    return Scaffold(
-          appBar: PreferredSize(
-                preferredSize: Size.fromHeight(MediaQuery.of(context).size.height/15), child:Container()
-          ),
-
-          //FAB
-          floatingActionButton: FloatingActionButton.extended(
-              label: Text("Add data"),
-              onPressed: () {
-                Navigator.of(context).push(
-                  new MaterialPageRoute<void>(
-                    builder: (BuildContext context) {
-                      return new AddQuestionScreen(question: null);
-                    })
-                );
-                setState(() {});
-              }),
-          //Body
-          body: //Home
-              Container(
-                color: Colors.white,
-                child: SafeArea(
-                  top: false,
-                  bottom: false,
-                  child: SingleChildScrollView(
-                    child:Column(
-                      children: [
-                        catSet(context),
-                        buildListView(context),
-                        /*
-                        Stack(
-                          children: <Widget>[
-                            buildListView(context),
-                            buildLoading(),
-                          ],
-                        )
-                        */
-                      ]
-                    ), 
-                  )
-                )
-              )
-    );
-    */
   }
 }
