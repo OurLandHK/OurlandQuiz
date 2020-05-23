@@ -6,14 +6,13 @@ import 'package:OurlandQuiz/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import 'dart:html' as html;
 
 import 'package:flutter/services.dart';
 
 
 import 'package:image_picker/image_picker.dart' as MobImagePicker;
 import 'package:image_picker_web/image_picker_web.dart' as WebImagePicker;
-
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../helper/stringHelper.dart';
 import '../helper/uiHelper.dart';
@@ -22,9 +21,10 @@ import '../services/questionService.dart';
 import '../services/auth.dart';
 import '../models/question.dart';
 import '../helper/uiHelper.dart';
-import 'package:open_graph_parser/open_graph_parser.dart';
+import '../models/userModel.dart';
+import '../widgets/DateTimeWidget.dart';
 
-import 'dart:html' as html;
+
 
 
 final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
@@ -49,9 +49,12 @@ class ViewQuestionState extends State<ViewQuestionScreen> {
   String _desc = "";
   String _parentTitle = "";
   String _reference = "";
+  String _questionUserName ="";
   bool _isSubmitDisable;
   Question question;
+  User questionUser;
   final String questionId;  
+  TextEditingController _textController;
 
   ViewQuestionState({@required this.question, @required this.questionId}) {
     print('state');
@@ -86,31 +89,38 @@ class ViewQuestionState extends State<ViewQuestionScreen> {
     List<String> dropdownList = categories.keys.toList();
     print(dropdownList);
     _tagDropDownMenuItems = getDropDownMenuItems(dropdownList, "");
-    if(this.question == null) {  
-      _firstTag = _tagDropDownMenuItems[0].value;  
-      _newTitleLabel = textRes.LABEL_NEW_QUESTION;
-      _sendButtonText = new Text(textRes.LABEL_MISSING_NEW_QUESTION);
-      Random rng = new Random();
-      _color = rng.nextInt(MEMO_COLORS.length);
-      _isSubmitDisable = true;
-      _descController = TextEditingController(text:'');
-      if(this.questionId != null && this.questionId.length > 0) {
-        initPlatformState();
-      }     
-    } else {
-      updateUI();
-    }
+    _firstTag = _tagDropDownMenuItems[0].value;  
+    _newTitleLabel = textRes.LABEL_NEW_QUESTION;
+    _sendButtonText = new Text(textRes.LABEL_MISSING_NEW_QUESTION);
+    Random rng = new Random();
+    _color = rng.nextInt(MEMO_COLORS.length);
+    _isSubmitDisable = true;
+    _textController = TextEditingController(text:'');
+    _descController = TextEditingController(text:'');
+    if(this.questionId != null && this.questionId.length > 0) {
+      initPlatformState();
+    }     
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.
   initPlatformState() async {
     print('initPlatformState');
-    questionService.getQuestion(this.questionId).then((question) {
-      if(question != null) {
-        this.question = question;
+    if(this.question != null) {
+      authService.getUser(this.question.createdUserid).then((questionUser) {
+        this.questionUser = questionUser;
         updateUI();
-      }
-    });
+      });
+    } else {
+      questionService.getQuestion(this.questionId).then((question) {
+        if(question != null) {
+          this.question = question;
+          authService.getUser(this.question.createdUserid).then((questionUser) {
+            this.questionUser = questionUser;
+            updateUI();
+          });
+        }
+      });
+    }
   }
 
   void updateUI() {
@@ -126,9 +136,10 @@ class ViewQuestionState extends State<ViewQuestionScreen> {
       }
       _desc = this.question.explanation;
       _parentTitle = this.question.title;
+      _textController.text = this.question.title;
       _reference = this.question.referenceUrl;
       _newTitleLabel = _parentTitle;
-
+      _questionUserName = this.questionUser.name;
       _color = this.question.color;
       _isSubmitDisable = false;
       _descController = TextEditingController(text: this.question.explanation);
@@ -166,10 +177,12 @@ class ViewQuestionState extends State<ViewQuestionScreen> {
       key: _scaffoldKey,
       appBar: new AppBar(
         backgroundColor: MEMO_COLORS[_color],
+        /*
         title: new Text(
           _newTitleLabel,
           style: TextStyle(/*color: primaryColor,*/ fontWeight: FontWeight.bold),
         ),
+        */
         actions: <Widget>[_buildShare(context)],
         centerTitle: true,
         elevation: 0.7,
@@ -248,44 +261,6 @@ class ViewQuestionState extends State<ViewQuestionScreen> {
                       });
         },
       )
-
-
-      
-      /*
-      RaisedButton(
-        child: Text('share to twitter'),
-        onPressed: () async {
-          var response = await FlutterShareMe().shareToTwitter(
-              url: url, msg: msg);
-          if (response == 'success') {
-            print('navigate success');
-          }
-        },
-      ),
-      RaisedButton(
-        child: Text('share to WhatsApp'),
-        onPressed: () {
-          FlutterShareMe()
-              .shareToWhatsApp(msg: msg);
-        },
-      ),
-      RaisedButton(
-        child: Text('share to shareFacebook'),
-        onPressed: () {
-          FlutterShareMe().shareToFacebook(
-              url: url, msg: msg);
-        },
-      ),
-      RaisedButton(
-        child: Text('share to System'),
-        onPressed: () async {
-          var response = await FlutterShareMe().shareToSystem(msg: msg);
-          if (response == 'success') {
-            print('navigate success');
-          }
-        },
-      )
-      */
     ]);
     return rv;
   }
@@ -293,7 +268,7 @@ class ViewQuestionState extends State<ViewQuestionScreen> {
   Widget titleUI(BuildContext context, int focusIndex) {
     return TextFormField(
       enabled: _addMode,
-      initialValue: this._parentTitle,
+      controller: _textController,
       focusNode: _focusNodes[focusIndex],
       onFieldSubmitted: (term) {
         fieldFocusChange(context, _focusNodes[focusIndex], _focusNodes[focusIndex+1]);
@@ -303,7 +278,6 @@ class ViewQuestionState extends State<ViewQuestionScreen> {
       decoration: InputDecoration(
         border: UnderlineInputBorder(),
         filled: true,
-        icon: Icon(Icons.live_help),
         labelText: textRes.LABEL_QUESTION,
       ),
       minLines: 1,
@@ -333,7 +307,8 @@ class ViewQuestionState extends State<ViewQuestionScreen> {
   Widget optionWidget(BuildContext context, int answerIndex) {
     bool displayResult = (this.question != null && user.questionIDs.contains(this.question.id));
     BoxDecoration decoration;
-    if(displayResult? _answers[answerIndex]:false) {
+    bool bAnswer = displayResult? _answers[answerIndex]:false;
+    if(bAnswer) {
       decoration = BoxDecoration(
           //gradient: gradient,
           border: Border.all(width: 1, color: Colors.red),
@@ -353,9 +328,14 @@ class ViewQuestionState extends State<ViewQuestionScreen> {
         child: 
           FlatButton(
             child: Text(this._options[answerIndex]), 
+            onPressed: bAnswer? emptyFunction:null
           )
       )
     );
+  }
+
+  void emptyFunction() {
+    //do nothing
   }
 
   Widget referenceWidget(BuildContext context, int focusIndex) {
@@ -468,30 +448,33 @@ class ViewQuestionState extends State<ViewQuestionScreen> {
   }
 
   Widget formUI(BuildContext context) {
+    /*
     List<Widget> toolbarWidget = [];
     toolbarWidget.add(Expanded(flex: 1, child: new Text(textRes.LABEL_TOPIC)));
     toolbarWidget.add(Expanded(flex: 2, child: new Text(_firstTag)));
     Row toolbar = Row(children: toolbarWidget);
+    */
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          toolbar,
           titleUI(context, 0),
           const SizedBox(height: 5.0),
           tagUI(context),
           (!kIsWeb) ? topicImageUI(context): Container(), 
-          const SizedBox(height: 5.0),
-          referenceWidget(context,12),
-          const SizedBox(height: 5.0),
-          descUI(context,13),
-          answerHeader(context),
+          //answerHeader(context),
           optionWidget(context, 0), 
           optionWidget(context, 1),
           optionWidget(context, 2),
           optionWidget(context, 3),
-          optionWidget(context, 4),  
+          optionWidget(context, 4),            
+          const SizedBox(height: 5.0),
+          Row(children: [Text("${this._questionUserName}:"), DateTimeWidget(this.question.created)]),
+          const SizedBox(height: 12.0),
+          referenceWidget(context,12),
+          const SizedBox(height: 5.0),
+          descUI(context,13),
           //const SizedBox(height: 5.0),
           //_buildShare(context)                                   
         ],

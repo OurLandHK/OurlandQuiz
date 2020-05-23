@@ -60,6 +60,7 @@ class TextRes {
   String get LABEL_USER_NAME => "User Name";
   String get LABEL_UPDATE_USER => "Udpate User";
   String get LABEL_SHARE_TO_CLIPBOARD => 'Share to ClipBoard';
+  String get LABEL_TOTAL_QUESTION => '題目數量';
   List<String> get QUESTION_STATUS_OPTIONS => ["等待審批", "撤回", "審批"];
   List<String> get USER_SETTING_MENU=>["創作清單","設定","登入其他戶口"];
 

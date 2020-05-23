@@ -1,3 +1,4 @@
+import 'package:firebase/firebase.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -8,8 +9,10 @@ import '../models/examResult.dart';
 import '../routing/routeNames.dart';
 import '../locator.dart';
 import '../services/navigationService.dart';
-
-class ResultWidget extends StatelessWidget {
+import '../services/auth.dart';
+import '../main.dart';
+import '../widgets/DateTimeWidget.dart';
+class ResultWidget extends StatefulWidget {
   final ExamResult examResult;
   String category;
   int rank;
@@ -22,22 +25,38 @@ class ResultWidget extends StatelessWidget {
       @required this.examResult})
       : super(key: key);
 
+  @override
+  State createState() => new ResultState();
+}
+
+class ResultState extends State<ResultWidget> {
+  String examUserName = "";
+
+  void initState() {
+    super.initState();
+    if(widget.examResult != null && widget.examResult.userId != null) {
+      
+      initPlatformState();
+    }
+  }
+
+  initPlatformState() async {
+    authService.getUser(this.widget.examResult.userId).then((resultUser) {
+      if(resultUser != null && resultUser.name != null) {
+        setState(() {
+          examUserName = resultUser.name;
+        });
+      } 
+    });
+  }  
+
   Widget build(BuildContext context) {
-    if(this.examResult == null) {
+    if(widget.examResult == null) {
       return Container();
     }
 
     void _onTapForView() async {
-      locator<NavigationService>().navigateTo('/${Routes[2].route}/${category}/${rank}', arguments: this.examResult);
-      /*
-      Navigator.of(context).push(
-        new MaterialPageRoute<void>(
-          builder: (BuildContext context) {
-            return ViewResultScreen(category: category, rank: rank, examResult: examResult);
-          },
-        ),
-      );
-      */
+      locator<NavigationService>().navigateTo('/${Routes[2].route}/${widget.category}/${widget.rank}', arguments: widget.examResult);
     }
     
     void _onTap() {
@@ -45,30 +64,23 @@ class ResultWidget extends StatelessWidget {
     }
 
     Widget rv = new Container();
-    if(this.examResult != null) {
-      int totalTime = this.examResult.totalTimeIn100ms();
+    if(widget.examResult != null) {
+      int totalTime = widget.examResult.totalTimeIn100ms();
       int correct = 0;
-      this.examResult.results.forEach((element) {
+      widget.examResult.results.forEach((element) {
         if(element.correct) {
           correct++;
         }
       });
       Widget messageWidget = Row(children: <Widget>[
-          Expanded(flex: 1, child: Text(rank.toString(), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black))),
-          Expanded(flex: 4, child: Text("Time: ${totalTime/10}")),
-          Expanded(flex: 2, child: Text("Correct $correct/${this.examResult.results.length}"))]);
+          Expanded(flex: 1, child: Text("${widget.rank.toString()}.", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black))),
+          Expanded(flex: 4, child: Text(this.examUserName)),
+          Expanded(flex: 2, child: Text("Time: ${totalTime/10}")),
+          Expanded(flex: 2, child: Text("Correct $correct/${widget.examResult.results.length}"))]);
       List<Widget> footers = []; 
         
-      // Time
-      Container timeWidget = Container(
-        child: Text(
-          DateFormat('dd MMM kk:mm').format(
-              new DateTime.fromMicrosecondsSinceEpoch(
-                this.examResult.createdAt.millisecondsSinceEpoch)),
-          style: Theme.of(context).textTheme.subtitle),
-      );
       footers.add(Expanded(flex: 1, child: Container()));
-      footers.add(timeWidget);
+      footers.add(DateTimeWidget(widget.examResult.createdAt));
       
       List<Widget> topicColumn = [Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
