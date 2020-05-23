@@ -4,6 +4,7 @@ import '../locator.dart';
 import '../services/navigationService.dart';
 import '../routing/routeNames.dart';
 import '../widgets/fabBottomAppBar.dart';
+import '../models/textRes.dart';
 
 
 class NavBarItem extends StatelessWidget {
@@ -54,12 +55,14 @@ class FAB_Bar extends StatelessWidget {
     
     return FABBottomAppBar(
           //centerItemText: _fabText,
-          backgroundColor: Theme.of(context).primaryColor,
-          selectedColor: Theme.of(context).accentColor,
+          backgroundColor: MEMO_COLORS[0],
+          selectedBackgroundColor: MEMO_COLORS[2],
+          selectedColor: Colors.black,
+          color: Colors.black,
           //notchedShape: _isFabShow ? CircularNotchedRectangle() : null,
           
           onTabSelected: (_selectedTab) {
-            print('Selected Tab $_selectedTab');
+            //print('Selected Tab $_selectedTab');
             locator<NavigationService>().navigateTo('/'+Routes[_selectedTab].route);
             },
           items: children

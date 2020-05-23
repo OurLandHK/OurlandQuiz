@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class Result {
   String questionId;
   List<String> answers;
@@ -58,7 +60,12 @@ class ExamResult {
   ExamResult.fromMap(Map<String, dynamic> map) {
     this.userId= map['userId'];
     if(map['createdAt'] != null) {
-      this.createdAt = map['createdAt'];
+      try{      
+        this.createdAt = map['createdAt'];
+      } catch (e) {
+        Timestamp timeStamp = map['createdAt'];
+        this.createdAt = timeStamp.toDate();
+      }
     } else {
       this.createdAt = DateTime.now();
     }

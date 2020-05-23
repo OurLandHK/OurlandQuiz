@@ -22,44 +22,20 @@ class QuestionService {
 
   Future getPendingQuestionList(String status, Function returnQuestionList) async {
     List<Question> questions = [];
-    // TODO
-    /*
-    if(!_user.sendBroadcastRight) {
-      sourceQuery = sourceQuery.where("uid", isEqualTo: _user.uuid);
-    }
-    */
     try {
-      if (!kIsWeb) {
-        //For mobile
-        var mobQuery = mobFirestore.collection('pendingQuestion').where("status", isEqualTo: status);
-        List<MobFirestore.QuerySnapshot> snaps = await mobQuery.snapshots().toList();
-        snaps.forEach((element1) {
-          element1.documents.forEach((doc) {
-            if(doc.exists) {
-              Map data = doc.data;
-              data['id'] = doc.documentID;
-              Question question = Question.fromMap(data); 
-              questions.add(question);
-            }
-          });
+      var mobQuery = mobFirestore.collection('pendingQuestion').where("status", isEqualTo: status);
+      mobQuery.snapshots().listen((event) {
+        event.documents.forEach((doc) {
+          if(doc.exists) {
+            Map data = doc.data;
+            //print(data);
+            data['id'] = doc.documentID;
+            Question question = Question.fromMap(data); 
+            questions.add(question);
+          }
         });
         returnQuestionList(questions);
-      } else {
-        //For Web
-  //      WebFirestore.SetOptions options;
-        var webQuery = webFirestore.collection('pendingQuestion').where("status", "==", status);
-        webQuery.onSnapshot.listen((webSnapshot) {
-          webSnapshot.docs.forEach((doc) {
-            if(doc.exists) {
-              Map data = doc.data();
-              data['id'] = doc.id;
-              Question question = Question.fromMap(data); 
-              questions.add(question);
-            }
-          });
-          returnQuestionList(questions);
-        });
-      }     
+      });
     } catch (exception) {
       print(exception);
       returnQuestionList(questions);
@@ -82,21 +58,11 @@ class QuestionService {
       indexData['bitbucketUrl'] = serverUrl;
     }
     try {
-      if (!kIsWeb) {
-        //For mobile
-        await mobFirestore
-            .collection('pendingQuestion').add(indexData)
-            .then((onValue) async {
-          blReturn = true;
-        });
-      } else {
-        //For Web
-        await webFirestore
-            .collection('pendingQuestion').add(indexData)
-            .then((onValue) async {
-          blReturn = true;
-        });
-      }     
+      await mobFirestore
+          .collection('pendingQuestion').add(indexData)
+          .then((onValue) async {
+        blReturn = true;
+      });
     } catch (exception) {
       print(exception);
     }
@@ -105,31 +71,19 @@ class QuestionService {
 
   Future approvePendingQuestion(Question question) async {
     var indexData = question.toMap();
+    indexData['lastUpdate'] = DateTime.now();
     indexData['status'] = textRes.QUESTION_STATUS_OPTIONS[2];
     int nextID = await getTotalQuestion();
     indexData['id'] = nextID.toString();
     try {
-      if (!kIsWeb) {
-        //For mobile
-        mobFirestore
-            .collection('question').document(indexData['id'])
-            .setData(indexData).then((data) {
-              return addCategoriesQuestionList(question.tags[0], indexData['id']).then((dummy) {
-                return mobFirestore
-                  .collection('pendingQuestion').document(question.id).delete();
-              });
+      mobFirestore
+          .collection('question').document(indexData['id'])
+          .setData(indexData).then((data) {
+            return addCategoriesQuestionList(question.tags[0], indexData['id']).then((dummy) {
+              return mobFirestore
+                .collection('pendingQuestion').document(question.id).delete();
             });
-      } else {
-        //For Web
-        await webFirestore
-            .collection('question').doc(indexData['id'])
-            .set(indexData).then((value) {
-              return addCategoriesQuestionList(question.tags[0], indexData['id']).then((dummy) {
-                return webFirestore
-                  .collection('pendingQuestion').doc(question.id).delete();
-              });
-            });
-      }     
+          });
     } catch (exception) {
       print(exception);
     }    
@@ -137,19 +91,12 @@ class QuestionService {
 
   Future rejectPendingQuestion(Question question) async {
     var indexData = question.toMap();
+    indexData['lastUpdate'] = DateTime.now();
     indexData['status'] = textRes.QUESTION_STATUS_OPTIONS[1];
     try {
-      if (!kIsWeb) {
-        //For mobile
-        await mobFirestore
-            .collection('pendingQuestion').document(question.id)
-            .setData(indexData);
-      } else {
-        //For Web
-        await webFirestore
-            .collection('pendingQuestion').doc(question.id)
-            .set(indexData);
-      }     
+      await mobFirestore
+          .collection('pendingQuestion').document(question.id)
+          .setData(indexData);
     } catch (exception) {
       print(exception);
     }    
@@ -158,7 +105,7 @@ class QuestionService {
   Future<void> addCategoriesQuestionList(String category, String questionID) async{
     int newValue = 1;
     try {
-      if (!kIsWeb) {
+      //if (!kIsWeb) {
         //For mobile
         MobFirestore.DocumentReference docRef = 
             mobFirestore.collection('QuizHome').document('fIhrNErzeiRP6UR9Y2z4');
@@ -184,34 +131,6 @@ class QuestionService {
             });
           });
         });
-      } else {
-        //For Web
-        var docRef = 
-            webFirestore
-            .collection('QuizHome').doc('fIhrNErzeiRP6UR9Y2z4');
-        var questionSetRef = 
-            docRef.collection('questionSet').doc(category);
-        return questionSetRef.get().then((questionSetSnap) {
-          print("${questionSetSnap.exists}");
-          Map<String, dynamic> questionSetMap;
-          if(questionSetSnap.exists) {
-            questionSetMap = questionSetSnap.data();
-            questionSetMap['questions'].add(questionID);
-            newValue = questionSetMap['questions'].length;
-          } else {
-            questionSetMap = Map<String, dynamic>();
-            questionSetMap['questions'] = <String>[questionID];
-          }
-          return questionSetRef.set(questionSetMap).then((dummy) {
-            return docRef.get().then((value) {
-                var data = value.data();
-                data['totalQuestion']++;
-                data['categories'][category]['count'] = newValue;
-                return docRef.set(data);
-            });
-          });
-        });    
-      }     
     } catch (exception) {
       print(exception);
     }
@@ -220,21 +139,11 @@ class QuestionService {
   Future<Map<String, dynamic>> getCategories() async{
     Map<String, dynamic> rv ;
     try {
-      if (!kIsWeb) {
-        //For mobile
-        return mobFirestore
-            .collection('QuizHome').document('fIhrNErzeiRP6UR9Y2z4').get().then((value) {
-              rv = value.data['categories'];
-              return rv;
-            });
-      } else {
-        //For Web
-        return webFirestore
-            .collection('QuizHome').doc('fIhrNErzeiRP6UR9Y2z4').get().then((value) {
-              rv = value.data()['categories'];
-              return rv;
-            });
-      }     
+      return mobFirestore
+          .collection('QuizHome').document('fIhrNErzeiRP6UR9Y2z4').get().then((value) {
+            rv = value.data['categories'];
+            return rv;
+          });
     } catch (exception) {
       print(exception);
     }
@@ -243,21 +152,11 @@ class QuestionService {
   Future<int> getTotalQuestion() async{
     int rv = -1;
     try {
-      if (!kIsWeb) {
-        //For mobile
-        return mobFirestore
-            .collection('QuizHome').document('fIhrNErzeiRP6UR9Y2z4').get().then((value) {
-              rv = value.data['totalQuestion'];
-              return rv;
-            });
-      } else {
-        //For Web
-        return webFirestore
-            .collection('QuizHome').doc('fIhrNErzeiRP6UR9Y2z4').get().then((value) {
-              rv = value.data()['totalQuestion'];
-              return rv;
-            });
-      }     
+      return mobFirestore
+          .collection('QuizHome').document('fIhrNErzeiRP6UR9Y2z4').get().then((value) {
+            rv = value.data['totalQuestion'];
+            return rv;
+          }); 
     } catch (exception) {
       print(exception);
       return rv;
@@ -306,25 +205,13 @@ class QuestionService {
     List<String> rv = [];
     if(category.length != 0) {
       try {
-        if (!kIsWeb) {
-          //For mobile
-          return mobFirestore
-              .collection('QuizHome').document('fIhrNErzeiRP6UR9Y2z4')
-              .collection('questionSet').document(category).get().then((value) {
-                List<dynamic> temp = value.data['questions'];
-                rv = temp.cast<String>();
-                return rv;
-              });
-        } else {
-          //For Web
-          return webFirestore
-              .collection('QuizHome').doc('fIhrNErzeiRP6UR9Y2z4')
-              .collection('questionSet').doc(category).get().then((value) {
-                List<dynamic> temp = value.data()['questions'];
-                rv = temp.cast<String>();
-                return rv;
-              });
-        }     
+        return mobFirestore
+            .collection('QuizHome').document('fIhrNErzeiRP6UR9Y2z4')
+            .collection('questionSet').document(category).get().then((value) {
+              List<dynamic> temp = value.data['questions'];
+              rv = temp.cast<String>();
+              return rv;
+            });
       } catch (exception) {
         print(exception);
         return rv;
@@ -336,32 +223,16 @@ class QuestionService {
 
   Future<Question> getQuestion(String id) {
     try {
-      if (!kIsWeb) {
-        //For mobile
-        return mobFirestore
-            .collection('question').document(id)
-            .get().then((data) {
-              if(data.exists) {
-                Question rv = Question.fromMap(data.data);
-                return rv;
-              } else {
-                return null;
-              }
-            });
-      } else {
-        //For Web
-        return webFirestore
-            .collection('question').doc(id)
-            .get().then((data) {
-              //print("$id ${data.exists}");
-              if(data.exists) {
-                Question rv = Question.fromMap(data.data());
-                return rv;
-              } else {
-                return null;
-              }
-            });
-      }     
+      return mobFirestore
+          .collection('question').document(id)
+          .get().then((data) {
+            if(data.exists) {
+              Question rv = Question.fromMap(data.data);
+              return rv;
+            } else {
+              return null;
+            }
+          });
     } catch (exception) {
       print(exception);
     }    
@@ -370,78 +241,41 @@ class QuestionService {
 Future getQuestionList(String category, Function returnQuestionList) async {
     List<Question> questions = [];
     try {
-      if (!kIsWeb) {
-        //For mobile
-        var mobQuery = mobFirestore.collection('question').where("tags", arrayContains: category);
-        List<MobFirestore.QuerySnapshot> snaps = await mobQuery.snapshots().toList();
-        snaps.forEach((element1) {
-          element1.documents.forEach((doc) {
-            if(doc.exists) {
-              Map data = doc.data;
-              data['id'] = doc.documentID;
-              Question question = Question.fromMap(data); 
-              questions.add(question);
-            }
-          });
+      var mobQuery = mobFirestore.collection('question').where("tags", arrayContains: category);
+      return mobQuery.snapshots().listen((event) {
+        event.documents.forEach((doc) {
+          if(doc.exists) {
+            Map data = doc.data;
+            //print(data);
+            data['id'] = doc.documentID;
+            Question question = Question.fromMap(data); 
+            questions.add(question);
+          }
         });
         returnQuestionList(questions);
-      } else {
-        //For Web
-  //      WebFirestore.SetOptions options;
-        var webQuery = webFirestore.collection('question').where("tags", "array-contains", category);
-        webQuery.onSnapshot.listen((webSnapshot) {
-          webSnapshot.docs.forEach((doc) {
-            if(doc.exists) {
-              Map data = doc.data();
-              data['id'] = doc.id;
-              Question question = Question.fromMap(data); 
-              questions.add(question);
-            }
-          });
-          returnQuestionList(questions);
-        });
-      }     
+        return;
+      });
     } catch (exception) {
       print(exception);
       returnQuestionList(questions);
     }
   }
 
-    Future getQuestionListByUserId(String userId, Function returnQuestionList) async {
+  Future getQuestionListByUserId(String userId, Function returnQuestionList) async {
     List<Question> questions = [];
-    // TODO
     try {
-      if (!kIsWeb) {
-        //For mobile
-        var mobQuery = mobFirestore.collection('question').where("createdUserid", isEqualTo: userId);
-        List<MobFirestore.QuerySnapshot> snaps = await mobQuery.snapshots().toList();
-        snaps.forEach((element1) {
-          element1.documents.forEach((doc) {
-            if(doc.exists) {
-              Map data = doc.data;
-              data['id'] = doc.documentID;
-              Question question = Question.fromMap(data); 
-              questions.add(question);
-            }
-          });
+      var mobQuery = mobFirestore.collection('question').where("createdUserid", isEqualTo: userId);
+      mobQuery.snapshots().listen((event) {
+        event.documents.forEach((doc) {
+          if(doc.exists) {
+            Map data = doc.data;
+            data['id'] = doc.documentID;
+            Question question = Question.fromMap(data); 
+            questions.add(question);
+          }
         });
         returnQuestionList(questions);
-      } else {
-        //For Web
-  //      WebFirestore.SetOptions options;
-        var webQuery = webFirestore.collection('question').where("createdUserid", "==", userId);
-        webQuery.onSnapshot.listen((webSnapshot) {
-          webSnapshot.docs.forEach((doc) {
-            if(doc.exists) {
-              Map data = doc.data();
-              data['id'] = doc.id;
-              Question question = Question.fromMap(data); 
-              questions.add(question);
-            }
-          });
-          returnQuestionList(questions);
-        });
-      }     
+      });
     } catch (exception) {
       print(exception);
       returnQuestionList(questions);
@@ -497,4 +331,5 @@ Future getQuestionList(String category, Function returnQuestionList) async {
     }
     return rv;
   } 
+  
 }

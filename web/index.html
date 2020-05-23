@@ -30,6 +30,18 @@
     You need to enable JavaScript to run this app.
   </noscript>
   <script>
+    var firebaseConfig = {
+      apiKey: "AIzaSyAcCCpASdf_PJ6TBk5KpvFmWm0DdTQBvlo",
+      authDomain: "ourlandquiz.firebaseapp.com",
+      databaseURL: "https://ourlandquiz.firebaseio.com",
+      projectId: "ourlandquiz",
+      storageBucket: "ourlandquiz.appspot.com",
+      messagingSenderId: "347244200453",
+      appId: "1:347244200453:web:1baf6aedc531c6b6aad26c",
+      measurementId: "G-KE4ZB4TE5S",
+    };
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function () {
         navigator.serviceWorker.register('/flutter_service_worker.js').then(function(registration) {

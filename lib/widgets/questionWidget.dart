@@ -10,6 +10,7 @@ import '../screens/viewQuestionScreen.dart';
 import '../routing/routeNames.dart';
 import '../locator.dart';
 import '../services/navigationService.dart';
+import '../widgets/DateTimeWidget.dart';
 
 class QuestionWidget extends StatelessWidget {
   final Question question;
@@ -92,7 +93,7 @@ class QuestionWidget extends StatelessWidget {
       }
         
       // Time
-      Container timeWidget = _buildTime(context);
+      Widget timeWidget = DateTimeWidget(this.question.created);
       footers.add(Expanded(flex: 1, child: Container()));
       footers.add(timeWidget);
       
@@ -138,16 +139,6 @@ class QuestionWidget extends StatelessWidget {
     }
     return rv;
   }  
-
-  Widget _buildTime(BuildContext context) {
-    return Container(
-        child: Text(
-          DateFormat('dd MMM kk:mm').format(
-              new DateTime.fromMicrosecondsSinceEpoch(
-                this.question.lastUpdate.microsecondsSinceEpoch)),
-          style: Theme.of(context).textTheme.subtitle),
-      );
-  }
 
   Widget _buildTitle(BuildContext context) {
     return Padding(

@@ -88,6 +88,7 @@ class Question {
     this._color = map['color'];
     this.status = map['status'];
     try {
+      
       this._created = map['created'].toDate();
     } catch(Exception) {
       this._created = map['created'];
