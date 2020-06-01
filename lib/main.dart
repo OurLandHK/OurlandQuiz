@@ -25,6 +25,7 @@ Map<String, dynamic> categories;
 
 Widget quizMain = Container();
 Widget resultMain = Container();
+LayoutTemplate layoutTemplate = LayoutTemplate();
 
 final ThemeData kIOSTheme = new ThemeData(
   primarySwatch: Colors.blue,
@@ -63,6 +64,11 @@ final ThemeData kDefaultTheme = new ThemeData(
               fontWeight: FontWeight.normal,
               color: Colors.black,
               fontSize: 10),
+          subtitle2: TextStyle(
+              fontFamily: 'Sans',
+              fontWeight: FontWeight.normal,
+              color: Colors.black,
+              fontSize: 18),              
         ),
       );
 
@@ -85,7 +91,7 @@ void main() {
     //initialRoute: '/',
     //navigatorKey: locator<NavigationService>().navigatorKey,
     onGenerateRoute: getFirstRoute,
-    theme: ThemeData(primarySwatch: Colors.orange), 
+    theme: kDefaultTheme, 
     home: new SplashScreen()));
 }
 
@@ -143,7 +149,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
             Image(image: AssetImage('assets/images/Icon-512.png'), width: splashImageSize),
             Padding(
               padding: const EdgeInsets.all(8.0),
-              child: Text(textRes.LABBEL_TITLE,
+              child: Text(textRes.LABEL_TITLE,
                   style: TextStyle(fontSize: MediaQuery.of(context).size.width * 0.05)),
             )
           ],
@@ -157,7 +163,7 @@ void mainNavigationPage() {
   //if (blIsSignedIn) {
     Navigator.pushReplacement(
       _context,
-      MaterialPageRoute(builder: (context) => LayoutTemplate(),),
+      MaterialPageRoute(builder: (context) => layoutTemplate,),
       //MaterialPageRoute(builder: (context) => HomeScreen(),),
     );
   /*

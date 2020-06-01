@@ -13,6 +13,7 @@ import '../models/question.dart';
 import '../models/examResult.dart';
 import '../widgets/questionWidget.dart';
 import '../services/auth.dart';
+import '../models/textRes.dart';
 
 class ReportWidget extends StatelessWidget {
   ExamResult examResult;
@@ -42,8 +43,8 @@ class ReportWidget extends StatelessWidget {
 
 
     List<Widget> buildGrid(BuildContext context) {
-      List<Widget> _gridItems = [Text("ReportTotal Time"),
-          Text("Total Time: ${this.examResult.totalTimeIn100ms()/10}"),
+      List<Widget> _gridItems = [
+          /*Text("${textRes.LABEL_TIME} ${this.examResult.totalTimeIn100ms()/10}"),*/
           const SizedBox(height: 12.0),];
       for(int i = 0; i < questions.length; i++) {
         _gridItems.add(buildItem(questions[i], this.examResult.results[i], context));

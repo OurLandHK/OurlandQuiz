@@ -9,10 +9,12 @@ import 'service.dart';
 import 'package:firebase_storage/firebase_storage.dart' as MobFirebaseStorage;
 import 'package:cloud_firestore/cloud_firestore.dart' as MobFirestore;
 import 'package:firebase/firebase.dart' as WebFirebase;
+import 'dart:html'as html;
 import 'package:flutter/foundation.dart';
 import '../main.dart';
 import '../models/question.dart';
 import '../models/textRes.dart';
+import './storageService.dart';
 
 QuestionService questionService = new QuestionService();
 
@@ -42,13 +44,17 @@ class QuestionService {
     }
   }
 
-  Future<bool> sendPendingQuestion(Question question, File imageFile) async {
+  Future<bool> sendPendingQuestion(Question question, List<int> imageBlob, List<int> descImageBlob) async {
     bool blReturn = false;
     Map imageUrls;
+    Map descImageUrls;
     String downloadUrl;
     String serverUrl;
-    if(imageFile != null) {
-      imageUrls = await this.uploadImage(imageFile);
+    if(imageBlob != null && imageBlob.length > 0) {
+      imageUrls = await storageService.uploadImage(imageBlob);
+    }
+    if(descImageBlob != null && descImageBlob.length > 0) {
+      descImageUrls = await storageService.uploadImage(descImageBlob);
     }
     var indexData = question.toMap();
     if(imageUrls != null) {
@@ -56,6 +62,12 @@ class QuestionService {
       serverUrl = imageUrls['serverUrl'];
       indexData['imageUrl'] = downloadUrl;
       indexData['bitbucketUrl'] = serverUrl;
+    }
+    if(imageUrls != null) {
+      downloadUrl = descImageUrls['downloadUrl'];
+      serverUrl =  descImageUrls['serverUrl'];
+      indexData['descImageUrl'] = downloadUrl;
+      indexData['descBitbucketUrl'] = serverUrl;
     }
     try {
       await mobFirestore
@@ -281,55 +293,4 @@ Future getQuestionList(String category, Function returnQuestionList) async {
       returnQuestionList(questions);
     }
   }
-
-  Future<Map> uploadImage(File imageFile) async {
-    File uploadImage = imageFile;
-    String fileName = 'photo/' + DateTime.now().millisecondsSinceEpoch.toString() + '.jpg';
-    List<int> blob = uploadImage.readAsBytesSync();
-    
-    Img.Image originImage = Img.decodeImage(blob);
-    Img.Image image = originImage;
-
-    bool newImage = false;
-    if(originImage.width > 1280) {
-      image = Img.copyResize(originImage, width: 1280);
-      newImage = true;
-    } else {
-      if(originImage.height > 1280) {
-        int width = (originImage.width * 1280 / originImage.height).round();
-        image = Img.copyResize(originImage, width: width, height: 1280);  
-        newImage = true;     
-      }
-    }
-
-    if(newImage) {
-  //    uploadImage = new File('temp.png').writeAsBytesSync(Img.encodePng(image));
-//      blob = new Img.PngEncoder({level: 3}).encodeImage(image);
-      blob = new Img.JpegEncoder(quality: 75).encodeImage(image);
-    }
-    Map rv = Map();
-    if (!kIsWeb) {
-      //For mobile
-      MobFirebaseStorage.StorageReference mobUploadFileRef = mobStorageRef.child(fileName);
-      MobFirebaseStorage.StorageUploadTask mobUploadTask = mobUploadFileRef.putData(blob);
-      MobFirebaseStorage.StorageTaskSnapshot mobStorageTaskSnapshot = await mobUploadTask.onComplete;
-      String downloadUrl = await mobStorageTaskSnapshot.ref.getDownloadURL();
-      String serverPath = await mobStorageTaskSnapshot.ref.getPath();
-      String bucketPath = await mobStorageTaskSnapshot.ref.getBucket();   
-      rv['downloadUrl'] = downloadUrl;
-      rv['serverUrl'] = "gs://" + bucketPath + "/" + serverPath;
-    } else {
-      WebFirebase.UploadMetadata uploadMetadata = WebFirebase.UploadMetadata(contentType: 'image/jpeg');
-      WebFirebase.StorageReference webUploadFileRef = webStorageRef.child(fileName);
-      WebFirebase.UploadTask uploadTask = webUploadFileRef.put(blob, uploadMetadata);
-      WebFirebase.UploadTaskSnapshot webStorageTaskSnapshot = await uploadTask.future;
-      Uri downloadUri = await webStorageTaskSnapshot.ref.getDownloadURL();
-      String downloadUrl = downloadUri.toString();
-      String bucketFullPath = webStorageTaskSnapshot.ref.toString(); 
-      rv['downloadUrl'] = downloadUrl;
-      rv['serverUrl'] = bucketFullPath;     
-    }
-    return rv;
-  } 
-  
 }

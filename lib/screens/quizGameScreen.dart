@@ -23,6 +23,7 @@ import '../models/question.dart';
 import '../models/examResult.dart';
 import '../widgets/questionWidget.dart';
 import '../widgets/reportWidget.dart';
+import '../main.dart';
 
 //final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
@@ -49,6 +50,7 @@ class QuizGameState extends State<QuizGameScreen> {
   OverlayEntry _overlayEntry;
   TextStyle _questionTextStyle;
   TextStyle _optionTextStyle;
+  String _imageUrl;
 
   final TextEditingController _textController = new TextEditingController();
   //final ScrollController listScrollController = new ScrollController();
@@ -100,14 +102,15 @@ class QuizGameState extends State<QuizGameScreen> {
           },
         ),
       );
-      TextStyle qtextStyle = pickTextStyle(context, question.title);
+      TextStyle qtextStyle = pickTextStyle(context, question.title, question.imageUrl);
       String maxOption = question.options[0];
       question.options.forEach((element) { if(maxOption.length < element.length) maxOption =element; });
-      TextStyle otextStyle = qtextStyle;
-      if(maxOption.length > question.title.length) {
-        otextStyle = pickTextStyle(context, maxOption);
-      }
+      TextStyle otextStyle = pickTextStyle(context, maxOption, null);
+      //if(maxOption.length > question.title.length) {
+        //otextStyle = pickTextStyle(context, maxOption, null);
+      //}
       setState(() {
+        _imageUrl = question.imageUrl;
         _questionTextStyle = qtextStyle;
         _optionTextStyle = otextStyle;
         _newTitleLabel = "${textRes.LABEL_QUESTION}: ${questionIndex + 1}";
@@ -121,16 +124,31 @@ class QuizGameState extends State<QuizGameScreen> {
     });
   }
 
-  TextStyle pickTextStyle(BuildContext context, String text) {
-    TextStyle rv = Theme.of(context).textTheme.subtitle1;
-      if(text.length > 10) {
-        rv = Theme.of(context).textTheme.subtitle2;
+  TextStyle pickTextStyle(BuildContext context, String text, String imageUrl) {
+    double height = MediaQuery.of(context).size.height;
+    TextStyle rv = Theme.of(context).textTheme.headline1;
+    if(height > 700) {
+      rv = Theme.of(context).textTheme.bodyText1;
+    }
+      if(text.length > 10 && imageUrl == null) {
+        if(height > 700)
+          rv = Theme.of(context).textTheme.bodyText1;
+        else
+          rv = Theme.of(context).textTheme.bodyText2;
       }
-      if(text.length > 30) {
-        rv = Theme.of(context).textTheme.bodyText1;
+      if(text.length > 30 && imageUrl == null) {
+        if(height > 700)
+          rv = Theme.of(context).textTheme.bodyText2;
+        else 
+          rv = Theme.of(context).textTheme.subtitle1;
       }
-      if(text.length > 50) {
-        rv = Theme.of(context).textTheme.bodyText2;
+      if(text.length > 50 || imageUrl != null) {
+        if(height > 700 || text.length < 75) {
+          rv = Theme.of(context).textTheme.subtitle1;
+        } else {
+          print(text.length);
+          rv = Theme.of(context).textTheme.subtitle2;
+        }
       }
     return rv;
   }
@@ -200,6 +218,7 @@ class QuizGameState extends State<QuizGameScreen> {
 
   Future<bool> onBackPress() {
     _timer.cancel();
+    layoutTemplate.showNaviBar(true);
     Navigator.pop(context);
     return Future.value(false);
   }
@@ -372,30 +391,40 @@ class QuizGameState extends State<QuizGameScreen> {
   } 
 
   Widget titleUI(BuildContext context) {
+    Widget imageWidget = Container();
+    Widget titleWidget = TextFormField(
+          enabled: false,
+          controller: _textController,
+          textInputAction: TextInputAction.next,
+          style: _questionTextStyle,
+          //textCapitalization: TextCapitalization.words,
+          decoration: InputDecoration(
+            //border: UnderlineInputBorder(),
+            filled: true,
+            //icon: Icon(Icons.live_help),
+            //hintText: textRes.HINT_QUESTION,
+            //labelText: textRes.LABEL_QUESTION,
+          ),
+          minLines: 1,
+          maxLines: 10,);
+    if(_imageUrl != null) {
+      double height = MediaQuery.of(context).size.height;
+      imageWidget = Image.network(_imageUrl, height: (height- 100)*3/8 - 22);
+      titleWidget = Text(_textController.text);
+    }
     return 
-      TextFormField(
-      enabled: false,
-      controller: _textController,
-      textInputAction: TextInputAction.next,
-      style: _questionTextStyle,
-      //textCapitalization: TextCapitalization.words,
-      decoration: InputDecoration(
-        //border: UnderlineInputBorder(),
-        filled: true,
-        //icon: Icon(Icons.live_help),
-        //hintText: textRes.HINT_QUESTION,
-        //labelText: textRes.LABEL_QUESTION,
-      ),
-      minLines: 1,
-      maxLines: 10,);
+      Column(children:[
+          titleWidget,
+          imageWidget]);
+
   }
 
   Widget tagUI(BuildContext context) {
     List<Chip> chips = [];
     this._tags.forEach((tag) {
-      chips.add(Chip(label: Text(tag), labelStyle: _questionTextStyle));
+      chips.add(Chip(label: Text(tag), labelStyle: Theme.of(context).textTheme.subtitle1));
     });
-    return Wrap(runSpacing: 4.0, spacing: 8.0, children: chips);
+    return Wrap(runSpacing: 2.0, spacing: 6.0, children: chips);
   }
   Widget answerHeader(BuildContext context) {
     return Row(children: <Widget> [
@@ -409,23 +438,33 @@ class QuizGameState extends State<QuizGameScreen> {
 
 
   Widget formUI(BuildContext context) {
+    double height = MediaQuery.of(context).size.height;
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
           //const SizedBox(height: 12.0),
-          titleUI(context),
-          tagUI(context),
+          SizedBox(height: (height)/2 -10,
+            child: Column(children: [
+              tagUI(context),
+              titleUI(context),
+            ]
+          )),
           //const SizedBox(height: 2.0),
           //answerHeader(context),
-          optionWidget(context, 0), 
-          optionWidget(context, 1),
-          optionWidget(context, 2),
-          optionWidget(context, 3),
-          optionWidget(context, 4),  
-          const SizedBox(height: 1.0),                                        
-          _buildSubmit(context)
+          SizedBox(height: (height- 100)/2 - 10 ,
+            child: Column(children: [
+              optionWidget(context, 0), 
+              optionWidget(context, 1),
+              optionWidget(context, 2),
+              optionWidget(context, 3),
+              optionWidget(context, 4), 
+                
+              const SizedBox(height: 1.0),                                        
+              _buildSubmit(context)
+            ]
+          ))
         ],
       )
     );
@@ -486,6 +525,7 @@ class QuizGameState extends State<QuizGameScreen> {
     }
     return SizedBox(
       width: MediaQuery.of(context).size.width - 60,
+      height: (MediaQuery.of(context).size.height - 100) / 14,
       child: Container(
         decoration: decoration,
         child: 

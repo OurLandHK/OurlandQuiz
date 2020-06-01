@@ -1,3 +1,4 @@
+import 'package:OurlandQuiz/screens/addNewsScreen.dart';
 import 'package:OurlandQuiz/services/questionService.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
@@ -7,7 +8,11 @@ import '../main.dart';
 import 'quizGameScreen.dart';
 import '../widgets/categoryMemo.dart';
 import '../models/textRes.dart';
+import '../models/news.dart';
 import '../services/auth.dart';
+import './layoutTemplate.dart';
+import './addNewsScreen.dart';
+import '../widgets/newsWidget.dart';
 
 final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
@@ -23,6 +28,7 @@ class QuizMainState extends State<QuizMainScreen> {
 
   List<DropdownMenuItem<String>> _tagDropDownMenuItems;
   List<String> quizCategories;
+  List<News> _newsList = [];
   int _totalQuestion = 0;
 
   @override
@@ -39,7 +45,6 @@ class QuizMainState extends State<QuizMainScreen> {
     // setState to update our non-existent appearance.
     //if (!mounted) return;
     questionService.getTotalQuestion().then((value) {
-      print(value);
       setState(() {
         _totalQuestion = value;
       });
@@ -59,6 +64,7 @@ class QuizMainState extends State<QuizMainScreen> {
   }
 
   void _onTap(String category) async {
+    layoutTemplate.showNaviBar(false);
     Navigator.push(context, 
       MaterialPageRoute(
         builder: (context) =>  QuizGameScreen(category: category)
@@ -76,13 +82,25 @@ class QuizMainState extends State<QuizMainScreen> {
     */
   }
 
+  void _addNews(String dummy) async {
+    showDialog<void>(
+      context: context,
+      //barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AddNewsScreen();
+      }); 
+  }
+
   Widget gameSet(BuildContext context) {
     List<Widget> buttonWidgets = [
       Text(
             textRes.LABEL_WELCOME_BACK + user.name,
             style: TextStyle(/*color: primaryColor,*/ fontWeight: FontWeight.bold),
           ),
-      CategoryMemo("", _onTap, ["${textRes.LABEL_TOTAL_QUESTION} : $_totalQuestion"])];
+      NewsWidget(),
+      CategoryMemo("", _onTap, ["${textRes.LABEL_TOTAL_QUESTION} : $_totalQuestion"])
+    ];
+      
     quizCategories.forEach((category) {
       int totalQuestion = _totalQuestion;
       if(category.length != 0) {
