@@ -20,6 +20,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../helper/stringHelper.dart';
 import '../helper/uiHelper.dart';
 import '../models/textRes.dart';
+import '../models/userModel.dart';
 import '../services/questionService.dart';
 import '../services/auth.dart';
 import '../models/question.dart';
@@ -47,6 +48,7 @@ class ListQuestionsState extends State<ListQuestionsScreen> {
   List<Question> _questions = [];
   List<List<String>> _userAnswers = [];
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  User _user;
 
   @override
   void initState() {
@@ -58,15 +60,17 @@ class ListQuestionsState extends State<ListQuestionsScreen> {
        _newTitleLabel = widget.userId;
       questionService.getQuestionListByUserId(widget.userId, this.updateQuestionList);     
     }
-    //initPlatformState();
+    initPlatformState();
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.
   initPlatformState() async {
-    // If the widget was removed from the tree while the asynchronous platform
-    // message was in flight, we want to discard the reply rather than calling
-    // setState to update our non-existent appearance.
-    //if (!mounted) return;
+    if(widget.userId != null) {
+      _user = await authService.getUser(widget.userId);
+      setState(() {
+        _newTitleLabel = _user.name;
+      });
+    }
   }
 
   void updateQuestionList(List<Question> questions) {

@@ -73,14 +73,14 @@ class QuestionWidget extends StatelessWidget {
       }
       if(result != null) {
         if(isCurrentUser) {
-          widgets.add(Text("Correct Answer: ${this.question.answers}"));
+          widgets.add(Text("${textRes.LABEL_CORRECT_ANSWER}: ${this.question.answers}"));
           if(result.correct) {
-            widgets.add(Text("You Are Correct"));
+            widgets.add(Text("${textRes.LABEL_YOU_ARE_CORRECT}"));
           } else {
-            widgets.add(Text("Your Answer: ${result.answers}"));
+            widgets.add(Text("${textRes.LABEL_YOUR_ANSWER} ${result.answers}"));
           }
         } else {
-          widgets.add(Text("User's Answer: ${result.answers}"));
+          widgets.add(Text("${textRes.LABEL_PLAYER_ANSWER} ${result.answers}"));
         }
       }
       Widget messageWidget = Column(children: widgets);
@@ -93,7 +93,7 @@ class QuestionWidget extends StatelessWidget {
       }
         
       // Time
-      Widget timeWidget = DateTimeWidget(this.question.created);
+      Widget timeWidget = DateTimeWidget(this.question.created, null);
       footers.add(Expanded(flex: 1, child: Container()));
       footers.add(timeWidget);
       

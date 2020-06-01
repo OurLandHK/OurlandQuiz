@@ -75,12 +75,12 @@ class ResultState extends State<ResultWidget> {
       Widget messageWidget = Row(children: <Widget>[
           Expanded(flex: 1, child: Text("${widget.rank.toString()}.", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black))),
           Expanded(flex: 4, child: Text(this.examUserName)),
-          Expanded(flex: 2, child: Text("Time: ${totalTime/10}")),
-          Expanded(flex: 2, child: Text("Correct $correct/${widget.examResult.results.length}"))]);
+          Expanded(flex: 2, child: Text("${textRes.LABEL_TIME} ${totalTime/10}")),
+          Expanded(flex: 2, child: Text("${textRes.LABEL_RESULT} $correct/${widget.examResult.results.length}"))]);
       List<Widget> footers = []; 
         
       footers.add(Expanded(flex: 1, child: Container()));
-      footers.add(DateTimeWidget(widget.examResult.createdAt));
+      footers.add(DateTimeWidget(widget.examResult.createdAt, null));
       
       List<Widget> topicColumn = [Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,

@@ -389,8 +389,8 @@ class ViewQuestionState extends State<ViewQuestionScreen> {
       decoration: InputDecoration(
         border: OutlineInputBorder(),
         icon: Icon(Icons.note),
-        hintText: textRes.HINT_DEATIL,
-        helperText: textRes.HELPER_DETAIL,
+        //hintText: textRes.HINT_DEATIL,
+        //helperText: textRes.HELPER_DETAIL,
         labelText: textRes.LABEL_DETAIL,
       ),
       minLines: 1,
@@ -401,40 +401,25 @@ class ViewQuestionState extends State<ViewQuestionScreen> {
   }
 
   Widget topicImageUI(BuildContext context) {
-    return 
-      Column(children: <Widget>[
-        Row(children: <Widget> [
-          Material(
-            child: new Container(
-              margin: new EdgeInsets.symmetric(horizontal: 1.0),
-              child: new IconButton(
-                icon: new Icon(Icons.image),
-                onPressed: getImageFromGallery,
-                //color: primaryColor,
-              ),
-            ),
-            color: MEMO_COLORS[_color],
-          ),
-          (!kIsWeb) ?
-          Material(
-            child: new Container(
-              margin: new EdgeInsets.symmetric(horizontal: 1.0),
-              child: new IconButton(
-                icon: new Icon(Icons.camera_enhance),
-                onPressed: getImageFromCamera,
-                //color: primaryColor,
-              ),
-            ),
-            color: MEMO_COLORS[_color],
-          ) : Container(),
-          imageFile != null ? Stack(children: [Image.file(
-            imageFile, width: MediaQuery.of(context).size.width / 2
-          ), IconButton(icon: Icon(Icons.close), onPressed: removeImage,)]) : new Container(), 
-        ]
-      )        
-    ],
-    crossAxisAlignment: CrossAxisAlignment.center,
-    );
+    Widget rv = Container();
+    if(widget.question != null) {
+      rv = Container();
+      if(widget.question.imageUrl != null) {
+        rv =Image.network(widget.question.imageUrl);
+      }
+    }
+    return rv;
+  }
+
+  Widget descImageUI(BuildContext context) {
+    Widget rv = Container();
+    if(widget.question != null) {
+      rv = Container();
+      if(widget.question.descImageUrl != null) {
+        rv =Image.network(widget.question.descImageUrl);
+      }
+    }
+    return rv;
   }
 
   void removeImage() {setState((){imageFile = null;});}
@@ -459,10 +444,9 @@ class ViewQuestionState extends State<ViewQuestionScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          titleUI(context, 0),
-          const SizedBox(height: 5.0),
           tagUI(context),
-          (!kIsWeb) ? topicImageUI(context): Container(), 
+          titleUI(context, 0),          
+          topicImageUI(context),
           //answerHeader(context),
           optionWidget(context, 0), 
           optionWidget(context, 1),
@@ -470,11 +454,12 @@ class ViewQuestionState extends State<ViewQuestionScreen> {
           optionWidget(context, 3),
           optionWidget(context, 4),            
           const SizedBox(height: 5.0),
-          Row(children: [Text("${this._questionUserName}:"), DateTimeWidget(this.question.created)]),
+          Row(children: [Text("${this._questionUserName}:"), DateTimeWidget(this.question.created, null)]),
           const SizedBox(height: 12.0),
           referenceWidget(context,12),
           const SizedBox(height: 5.0),
           descUI(context,13),
+          descImageUI(context),
           //const SizedBox(height: 5.0),
           //_buildShare(context)                                   
         ],

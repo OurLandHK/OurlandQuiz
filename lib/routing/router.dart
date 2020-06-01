@@ -41,11 +41,11 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       return _getPageRoute(SubmitMainScreen(), '/'+Routes[1].route);
     }
     Question question;
-    print('Testing1 ${settings.name}');
+    //print('Testing1 ${settings.name}');
     if(settings.arguments != null) {
       question = settings.arguments;
     }
-    print('Testing2 ${settings.name}');
+    //print('Testing2 ${settings.name}');
     return _getPageRoute(new ViewQuestionScreen(question: question, questionId: path[2]), settings.name);
   }
   if(route == Routes[2].route) {

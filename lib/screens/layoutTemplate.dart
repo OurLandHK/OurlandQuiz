@@ -9,11 +9,31 @@ import '../widgets/navigationBar.dart';
 import '../widgets/navigationDrawer.dart';
 
 String initialRoute = '/';
-class LayoutTemplate extends StatelessWidget {
-  const LayoutTemplate({Key key}) : super(key: key);
 
+class LayoutTemplate extends StatefulWidget {
+  LayoutTemplateState _state;
+  LayoutTemplate({Key key}) : super(key: key);
+    @override
+  State createState() {
+    _state = new LayoutTemplateState();
+    return _state;
+  } 
+  void showNaviBar(bool show) {
+    _state.showNaviBar(show);
+  }
+
+}
+
+class LayoutTemplateState extends State<LayoutTemplate> {
+  bool isShowNavigatorBar = true;
+  void showNaviBar(bool show) {
+    setState(() {
+      isShowNavigatorBar = show;
+    });
+  }
   @override
   Widget build(BuildContext context) {
+    print('Layout $isShowNavigatorBar');
     return ResponsiveBuilder(
       builder: (context, sizingInformation) { 
         Scaffold scaffold = Scaffold(
@@ -33,7 +53,7 @@ class LayoutTemplate extends StatelessWidget {
               ],
             ),
           ),
-          bottomNavigationBar: NavigationBar(),
+          bottomNavigationBar: this.isShowNavigatorBar ? NavigationBar(): null,
           /*
           bottomNavigationBar: sizingInformation.deviceScreenType != DeviceScreenType.Mobile ?
           NavigationBar(): null,

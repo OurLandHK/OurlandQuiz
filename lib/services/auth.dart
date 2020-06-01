@@ -174,6 +174,7 @@ class AuthService {
         if(value != null) {
           blIsSignedIn = true;
           user = value;
+          updateUser(user);
         }
         return blIsSignedIn;
       });
@@ -204,7 +205,6 @@ class AuthService {
         .document(_userID).get().then((snapshot) async {
       if (snapshot.data != null) {
         var map = snapshot.data;
-        map['updatedAt'] = DateTime.now();
         _user = User.fromMap(map);
       } 
       return _user;

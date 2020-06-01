@@ -3,6 +3,8 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 import 'dart:html'as html;
+import 'package:mime_type/mime_type.dart';
+import 'package:path/path.dart' as Path;
 
 import 'package:OurlandQuiz/main.dart';
 import 'package:flutter/material.dart';
@@ -39,7 +41,11 @@ class AddQuestionScreen extends StatefulWidget {
 
 class AddQuestionState extends State<AddQuestionScreen> {
   File imageFile;
+  File descImageFile;
+  List<int> imageFileWebData;
   Image image;
+  List<int> descImageFileWebData;
+  Image descImage;
   //SharedPreferences prefs;
   //Question _currentQuestion;
   String _newTitleLabel;
@@ -173,36 +179,54 @@ class AddQuestionState extends State<AddQuestionScreen> {
 
   Future getImageFromGallery() async {
     if (!kIsWeb) {
-      await mobGetImage(MobImagePicker.ImageSource.gallery);
+      await mobGetImage(MobImagePicker.ImageSource.gallery, true);
     } else {
-      await webGetImage(WebImagePicker.ImageType.file);
+      await webGetImage(WebImagePicker.ImageType.file, true);
     }
   }
 
-  Future getImageFromCamera() async {
-    await mobGetImage(MobImagePicker.ImageSource.camera);
+  Future getImageFromGalleryForAnswer() async {
+    if (!kIsWeb) {
+      await mobGetImage(MobImagePicker.ImageSource.gallery, false);
+    } else {
+      await webGetImage(WebImagePicker.ImageType.file, false);
+    }
   }
- 
-  Future webGetImage(WebImagePicker.ImageType outputType) async {
-    Uint8List rawbyte = await WebImagePicker.ImagePickerWeb.getImage(outputType: WebImagePicker.ImageType.bytes);
-    File newImageFile = File.fromRawPath(rawbyte);
-    Image tempImage = Image.file(newImageFile);
-    if(tempImage != null) {
-      setState(() {
-        image = tempImage;
-        imageFile = newImageFile;
-      });
+
+  Future webGetImage(WebImagePicker.ImageType outputType, bool isQuestion) async {
+    var mediaData = await WebImagePicker.ImagePickerWeb.getImageInfo;
+    String mimeType = mime(Path.basename(mediaData.fileName));
+    html.File newImageFile =
+        new html.File(mediaData.data, mediaData.fileName, {'type': mimeType});
+    if(newImageFile != null) {
+      Image tempImage = Image.memory(mediaData.data);
+      if(tempImage != null) {
+        setState(() {
+          if(isQuestion) {
+            this.image = tempImage;
+            this.imageFileWebData = mediaData.data;
+          } else {
+            this.descImage = tempImage;
+            this.descImageFileWebData = mediaData.data;
+          }
+        });
+      }
     }
   }  
 
-  Future mobGetImage(MobImagePicker.ImageSource imageSource) async {
+  Future mobGetImage(MobImagePicker.ImageSource imageSource, bool isQuestion) async {
     File newImageFile = await MobImagePicker.ImagePicker.pickImage(source: imageSource);
     if (newImageFile != null) {
       Image tempImage = Image.file(newImageFile);
       if(tempImage != null) {
       setState(() {
-        image = tempImage;
-        imageFile = newImageFile;
+        if(isQuestion) {
+          image = tempImage;
+          imageFile = newImageFile;
+        } else {
+          descImage = tempImage;
+          descImageFile = newImageFile;
+        }
         //print("${imageFile.uri.toString()}");
       });
       }
@@ -333,8 +357,7 @@ class AddQuestionState extends State<AddQuestionScreen> {
       decoration: InputDecoration(
         border: OutlineInputBorder(),
         icon: Icon(Icons.note),
-        hintText: textRes.HINT_DEATIL,
-        helperText: textRes.HELPER_DETAIL,
+        hintText: textRes.HINT_DEATIL + " " + textRes.HELPER_DETAIL,
         labelText: textRes.LABEL_DETAIL,
       ),
       minLines: 1,
@@ -348,46 +371,83 @@ class AddQuestionState extends State<AddQuestionScreen> {
   }
 
   Widget topicImageUI(BuildContext context) {
-    return 
-      Column(children: <Widget>[
-        Row(children: <Widget> [
-          Material(
-            child: new Container(
-              margin: new EdgeInsets.symmetric(horizontal: 1.0),
-              child: new IconButton(
-                icon: new Icon(Icons.image),
-                onPressed: getImageFromGallery,
-                //color: primaryColor,
-              ),
+    Widget rv;
+    if(widget.question != null) {
+      rv = Container();
+      if(widget.question.imageUrl != null) {
+        rv =Image.network(widget.question.imageUrl);
+      }
+    }
+    else {
+      rv = Column(children: <Widget>[
+          Row(children: <Widget> [
+            Material(
+              child:Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                IconButton(
+                  icon: Icon(Icons.image),
+                  tooltip: 'Increase volume by 10',
+                  onPressed: getImageFromGallery,
+                ),
+                Text(textRes.LABEL_QUESTION_IMAGE)
+              ]),
+              color: MEMO_COLORS[_color],
             ),
-            color: MEMO_COLORS[_color],
-          ),
-          (!kIsWeb) ?
-          Material(
-            child: new Container(
-              margin: new EdgeInsets.symmetric(horizontal: 1.0),
-              child: new IconButton(
-                icon: new Icon(Icons.camera_enhance),
-                onPressed: getImageFromCamera,
-                //color: primaryColor,
-              ),
-            ),
-            color: MEMO_COLORS[_color],
-          ) : Container(),
-          image != null ? Stack(children: [SizedBox(width: MediaQuery.of(context).size.width / 2, child: image),
-           IconButton(icon: Icon(Icons.close), onPressed: removeImage,)]) : new Container(),
-          /*
-          imageFile != null ? Stack(children: [Image.file(
-            imageFile, width: MediaQuery.of(context).size.width / 2
-          ), IconButton(icon: Icon(Icons.close), onPressed: removeImage,)]) : new Container(), */
-        ]
-      )        
-    ],
-    crossAxisAlignment: CrossAxisAlignment.center,
-    );
+            image != null ? Stack(children: [SizedBox(width: MediaQuery.of(context).size.width / 2, child: image),
+            IconButton(icon: Icon(Icons.close), onPressed: removeImage,)]) : new Container(),
+            /*
+            imageFile != null ? Stack(children: [Image.file(
+              imageFile, width: MediaQuery.of(context).size.width / 2
+            ), IconButton(icon: Icon(Icons.close), onPressed: removeImage,)]) : new Container(), */
+          ]
+        )        
+        ],   crossAxisAlignment: CrossAxisAlignment.center,
+      );
+    }
+    return rv;
   }
 
-  void removeImage() {setState((){image = null;});}
+  void removeImage() {setState((){image = null; imageFileWebData = null;});}
+  void removeDescImage() {setState((){descImage = null; descImageFileWebData = null;});}
+
+  Widget topicDescImageUI(BuildContext context) {
+    Widget rv;
+    if(widget.question != null) {
+      rv = Container();
+      if(widget.question.descImageUrl != null) {
+        rv =Image.network(widget.question.descImageUrl);
+      }
+    }
+    else {
+      rv = Column(children: <Widget>[
+          Row(children: <Widget> [
+            Material(
+              child:Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                IconButton(
+                  icon: Icon(Icons.image),
+                  tooltip: textRes.LABEL_ANSWER_IMAGE,
+                  onPressed: getImageFromGalleryForAnswer,
+                ),
+                Text(textRes.LABEL_ANSWER_IMAGE)
+              ]),
+              color: MEMO_COLORS[_color],
+            ),
+            descImage != null ? Stack(children: [SizedBox(width: MediaQuery.of(context).size.width / 2, child: descImage),
+            IconButton(icon: Icon(Icons.close), onPressed: removeDescImage,)]) : new Container(),
+            /*
+            imageFile != null ? Stack(children: [Image.file(
+              imageFile, width: MediaQuery.of(context).size.width / 2
+            ), IconButton(icon: Icon(Icons.close), onPressed: removeImage,)]) : new Container(), */
+          ]
+        )        
+        ],   crossAxisAlignment: CrossAxisAlignment.center,
+      );
+    }
+    return rv;
+  }
 
   void searchForKeywords(String desc) {
     String parseText = desc.replaceAll("\n", " ");
@@ -442,6 +502,10 @@ class AddQuestionState extends State<AddQuestionScreen> {
         _isSubmitDisable = true;
         _sendButtonText = Text(textRes.LABEL_MISSING_NEW_QUESTION);
         rv = textRes.LABEL_MISSING_NEW_QUESTION;
+      } if(value.length > 100) {
+        _isSubmitDisable = true;
+        _sendButtonText = Text(textRes.LABEL_TOO_MUCH_NEW_QUESTION);
+        rv = textRes.LABEL_TOO_MUCH_NEW_QUESTION;
       } else {
         _formKey.currentState.save();
         temp = checkOptionsAndAnswer();
@@ -519,6 +583,14 @@ class AddQuestionState extends State<AddQuestionScreen> {
           _answerString.add(this._options[i]);
         }
       }
+      List<int> imageBlob = imageFileWebData;
+      List<int> descImageBlob = descImageFileWebData;
+      if(imageFile != null) {
+        imageBlob = imageFile.readAsBytesSync();
+      }
+      if(descImageFile != null) {
+        descImageBlob = descImageFile.readAsBytesSync();
+      }
       Question sendQuestion = new Question(
           "",
           this._parentTitle,
@@ -528,9 +600,15 @@ class AddQuestionState extends State<AddQuestionScreen> {
           tags,
           this._desc,
           null,
+          null,
+          null,
+          null,
           this._reference,
           this._color);
-      questionService.sendPendingQuestion(sendQuestion, imageFile);
+      setState(() {
+        _isSubmitDisable = true;
+      }); 
+      questionService.sendPendingQuestion(sendQuestion, imageBlob, descImageBlob);
       onBackPress();
     //}
   }
@@ -594,17 +672,17 @@ class AddQuestionState extends State<AddQuestionScreen> {
         children: <Widget>[
           toolbar,
           const SizedBox(height: 12.0),
-          ColorPicker(
+          widget.question == null? ColorPicker(
             selectedIndex: _color,
             onTap: (index) {
               setState(() {
                 _color = index;
               });
             },
-          ),
+          ) : Container(),
           titleUI(context, 0),
           const SizedBox(height: 5.0),
-          //topicImageUI(context),
+          topicImageUI(context),
           answerHeader(context, 1),
           optionWidget(context, 0, 2), 
           optionWidget(context, 1, 4),
@@ -612,12 +690,13 @@ class AddQuestionState extends State<AddQuestionScreen> {
           optionWidget(context, 3, 8),
           optionWidget(context, 4, 10),  
           const SizedBox(height: 5.0),                                      
-          (!kIsWeb) ? topicImageUI(context): Container(), 
+          //(!kIsWeb) ? topicImageUI(context): Container(), 
           const SizedBox(height: 5.0),
           referenceWidget(context,12),
           const SizedBox(height: 5.0),
           tagUI(context),
           descUI(context,13),
+          topicDescImageUI(context),
           _buildSubmit(context)
         ],
       )

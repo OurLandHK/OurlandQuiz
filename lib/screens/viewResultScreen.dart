@@ -104,8 +104,8 @@ class ViewResultState extends State<ViewResultScreen> {
         correct++;
       }
     });
-    _newTitleLabel = widget.rank.toString() + " Time: ${totalTime/10}" +
-        "  Correct $correct/${_examResult.results.length}";
+    _newTitleLabel = "第" + widget.rank.toString() + "位     " + " ${textRes.LABEL_TIME} ${totalTime/10}" +
+        " ${textRes.LABEL_RESULT} $correct/${_examResult.results.length}";
   }
 
   Future<bool> onBackPress() {

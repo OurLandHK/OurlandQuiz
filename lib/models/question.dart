@@ -11,6 +11,9 @@ class Question {
   String status;
   int _color;
   String _imageUrl;
+  String _bitbucketUrl;
+  String _descImageUrl;
+  String _descBitbucketUrl;
   String _title;
   String _explanation;
   List<dynamic> _tags;
@@ -18,7 +21,7 @@ class Question {
   List<dynamic> _answers;
   String _referenceUrl;
 
-  Question(this._id, this._title, this._options, this._answers, this._createdUserid, this._tags, this._explanation, this._imageUrl, this._referenceUrl, this._color) {
+  Question(this._id, this._title, this._options, this._answers, this._createdUserid, this._tags, this._explanation, this._imageUrl, this._bitbucketUrl, this._descImageUrl, this._descBitbucketUrl, this._referenceUrl, this._color) {
         this._created = DateTime.now();
         this._lastUpdate = this._created;
         this.lastUpdateUserid = this._createdUserid;
@@ -27,6 +30,9 @@ class Question {
 
   String get id => _id;
   String get imageUrl => _imageUrl;
+  String get bitbucketUrl => _bitbucketUrl;
+  String get descImageUrl => _descImageUrl;
+  String get descBitbucketUrl => _descBitbucketUrl;
   String get title => _title;
   String get explanation => _explanation;
 //  List<String> get tags => _tags;
@@ -62,6 +68,15 @@ class Question {
     if (_imageUrl != null) {
       map['imageUrl'] = _imageUrl;
     }
+    if (_bitbucketUrl != null) {
+      map['bitbucketUrl'] = _bitbucketUrl;
+    }
+    if (_descImageUrl != null) {
+      map['descImageUrl'] = _descImageUrl;
+    }
+    if (_descBitbucketUrl != null) {
+      map['descBitbucketUrl'] = _descBitbucketUrl;
+    }
     if (this._explanation!= null) {
       map['explanation'] = this._explanation;
     }
@@ -77,6 +92,9 @@ class Question {
   Question.fromMap(Map<String, dynamic> map) {
     this._id = map['id'];
     this._imageUrl = map['imageUrl'];
+    this._bitbucketUrl = map['bitbucketUrl'];
+    this._descImageUrl = map['descImageUrl'];
+    this._descBitbucketUrl = map['descBitbucketUrl'];
     this._title = map['title'];
     this._tags = map['tags'];
     this._answers = map['answers'];
@@ -88,7 +106,6 @@ class Question {
     this._color = map['color'];
     this.status = map['status'];
     try {
-      
       this._created = map['created'].toDate();
     } catch(Exception) {
       this._created = map['created'];
