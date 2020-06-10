@@ -68,28 +68,13 @@ final ThemeData kDefaultTheme = new ThemeData(
               fontFamily: 'Sans',
               fontWeight: FontWeight.normal,
               color: Colors.black,
-              fontSize: 18),              
+              fontSize: 8),              
         ),
       );
 
 void main() {
-//  //For Web
-/*  if (kIsWeb) {
-    WebFirebase.initializeApp(
-      apiKey: "AIzaSyAcCCpASdf_PJ6TBk5KpvFmWm0DdTQBvlo",
-      authDomain: "ourlandquiz.firebaseapp.com",
-      databaseURL: "https://ourlandquiz.firebaseio.com",
-      projectId: "ourlandquiz",
-      storageBucket: "ourlandquiz.appspot.com",
-      messagingSenderId: "347244200453",
-      appId: "1:347244200453:web:1baf6aedc531c6b6aad26c",
-      measurementId: "G-KE4ZB4TE5S");
-  }*/
-  //initialRoute = '/me';
   setupLocator();
   runApp(new MaterialApp(
-    //initialRoute: '/',
-    //navigatorKey: locator<NavigationService>().navigatorKey,
     onGenerateRoute: getFirstRoute,
     theme: kDefaultTheme, 
     home: new SplashScreen()));
@@ -125,7 +110,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       setState(() {
         categories = _cat;
         quizMain = QuizMainScreen();
-        resultMain = ResultMainScreen(categories.keys.toList());
+        resultMain = ResultMainScreen(categories.keys.toList(), null);
       });
     });
   }

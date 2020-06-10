@@ -69,6 +69,7 @@ class TextRes {
   String get LABEL_YOUR_ANSWER => '你答';
   String get LABEL_PLAYER_ANSWER => '玩家答案';
   String get LABEL_TIME => '時間';
+  String get LABEL_CREATE_TIME => '創作時間';
   String get LABEL_RESULT => '成績';
   String get LABEL_NEWS => '新聞';
   String get LABEL_ADD_NEWS => '新增新聞';
@@ -77,7 +78,7 @@ class TextRes {
   String get LABEL_NEWS_DETAIL => '新聞詳情';
   String get LABEL_UPDATE_NEWS => '新增新聞';
   List<String> get QUESTION_STATUS_OPTIONS => ["等待審批", "撤回", "審批"];
-  List<String> get USER_SETTING_MENU=>["創作清單","設定","登入其他戶口"];
+  List<String> get USER_SETTING_MENU=>["創作清單","設定","登入其他戶口", "個人記錄"];
 
 }
 

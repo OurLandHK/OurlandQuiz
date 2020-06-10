@@ -102,13 +102,10 @@ class QuizGameState extends State<QuizGameScreen> {
           },
         ),
       );
-      TextStyle qtextStyle = pickTextStyle(context, question.title, question.imageUrl);
+      TextStyle qtextStyle = pickTitleTextStyle(context, question.title, question.imageUrl);
       String maxOption = question.options[0];
       question.options.forEach((element) { if(maxOption.length < element.length) maxOption =element; });
-      TextStyle otextStyle = pickTextStyle(context, maxOption, null);
-      //if(maxOption.length > question.title.length) {
-        //otextStyle = pickTextStyle(context, maxOption, null);
-      //}
+      TextStyle otextStyle = pickOptionTextStyle(context, maxOption);
       setState(() {
         _imageUrl = question.imageUrl;
         _questionTextStyle = qtextStyle;
@@ -124,32 +121,34 @@ class QuizGameState extends State<QuizGameScreen> {
     });
   }
 
-  TextStyle pickTextStyle(BuildContext context, String text, String imageUrl) {
+  TextStyle pickTitleTextStyle(BuildContext context, String text, String imageUrl) {
     double height = MediaQuery.of(context).size.height;
-    TextStyle rv = Theme.of(context).textTheme.headline1;
-    if(height > 700) {
-      rv = Theme.of(context).textTheme.bodyText1;
+    double fontSize = 20;
+    double textLenghtFactor = 1 - (text.length / 50) * 0.1;
+    fontSize *= textLenghtFactor;
+    if(imageUrl != null) {
+      fontSize *= 0.75;
     }
-      if(text.length > 10 && imageUrl == null) {
-        if(height > 700)
-          rv = Theme.of(context).textTheme.bodyText1;
-        else
-          rv = Theme.of(context).textTheme.bodyText2;
-      }
-      if(text.length > 30 && imageUrl == null) {
-        if(height > 700)
-          rv = Theme.of(context).textTheme.bodyText2;
-        else 
-          rv = Theme.of(context).textTheme.subtitle1;
-      }
-      if(text.length > 50 || imageUrl != null) {
-        if(height > 700 || text.length < 75) {
-          rv = Theme.of(context).textTheme.subtitle1;
-        } else {
-          print(text.length);
-          rv = Theme.of(context).textTheme.subtitle2;
-        }
-      }
+    //print('FontSzint h ${height} fs ${fontSize} ig ${imageUrl} text.lenght${text.length} textLenghtFactio ${textLenghtFactor}');
+    TextStyle rv = TextStyle(
+              fontFamily: 'Sans',
+              fontWeight: FontWeight.normal,
+              color: Colors.black,
+              fontSize: fontSize);
+    return rv;
+  }
+
+  TextStyle pickOptionTextStyle(BuildContext context, String text) {
+    double height = MediaQuery.of(context).size.height;
+    double fontSize = 16;
+    double textLenghtFactor = 1 - (text.length / 50) * 0.1;
+    fontSize *= textLenghtFactor;
+    //print('FontSzint h ${height} fs ${fontSize} ig ${imageUrl} text.lenght${text.length} textLenghtFactio ${textLenghtFactor}');
+    TextStyle rv = TextStyle(
+              fontFamily: 'Sans',
+              fontWeight: FontWeight.normal,
+              color: Colors.black,
+              fontSize: fontSize);
     return rv;
   }
 
@@ -405,7 +404,7 @@ class QuizGameState extends State<QuizGameScreen> {
             //hintText: textRes.HINT_QUESTION,
             //labelText: textRes.LABEL_QUESTION,
           ),
-          minLines: 1,
+          minLines: 2,
           maxLines: 10,);
     if(_imageUrl != null) {
       double height = MediaQuery.of(context).size.height;

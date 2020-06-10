@@ -12,6 +12,7 @@ import '../services/navigationService.dart';
 import '../services/auth.dart';
 import '../main.dart';
 import '../widgets/DateTimeWidget.dart';
+import '../widgets/avatarMemo.dart';
 class ResultWidget extends StatefulWidget {
   final ExamResult examResult;
   String category;
@@ -30,7 +31,7 @@ class ResultWidget extends StatefulWidget {
 }
 
 class ResultState extends State<ResultWidget> {
-  String examUserName = "";
+  Widget _avatarWidget = Container();
 
   void initState() {
     super.initState();
@@ -44,7 +45,7 @@ class ResultState extends State<ResultWidget> {
     authService.getUser(this.widget.examResult.userId).then((resultUser) {
       if(resultUser != null && resultUser.name != null) {
         setState(() {
-          examUserName = resultUser.name;
+         _avatarWidget = AvatarMemo(resultUser);
         });
       } 
     });
@@ -74,13 +75,13 @@ class ResultState extends State<ResultWidget> {
       });
       Widget messageWidget = Row(children: <Widget>[
           Expanded(flex: 1, child: Text("${widget.rank.toString()}.", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black))),
-          Expanded(flex: 4, child: Text(this.examUserName)),
+          Expanded(flex: 4, child: _avatarWidget),
           Expanded(flex: 2, child: Text("${textRes.LABEL_TIME} ${totalTime/10}")),
           Expanded(flex: 2, child: Text("${textRes.LABEL_RESULT} $correct/${widget.examResult.results.length}"))]);
       List<Widget> footers = []; 
         
       footers.add(Expanded(flex: 1, child: Container()));
-      footers.add(DateTimeWidget(widget.examResult.createdAt, null));
+      footers.add(DateTimeWidget(widget.examResult.createdAt, null , null));
       
       List<Widget> topicColumn = [Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,

@@ -23,43 +23,20 @@ class ExamService {
 
   Future<void> submitExamResult(String category, User user,ExamResult examResult) async{
     try {
-      //if (!kIsWeb) {
-        var examResultRef = 
+      // update for top 20
+       // update for global top 10 record
+        MobFirestore.DocumentReference examResultRef = 
             mobFirestore
-            .collection('ExamResult').document(category);    
+            .collection('ExamResult').document(category);           
+        await _updateTopXExamResult(examResultRef, examResult, 20);
+        // update for user's top 10 record
+        MobFirestore.DocumentReference userExamResultRef = 
+            mobFirestore.collection('User').document(user.id).collection('ExamResult').document(category);    
+        await _updateTopXExamResult(userExamResultRef, examResult, 10);
+
+        // update question play record
         var questionCollectionRef = 
             mobFirestore.collection('question');
-        // find the smallest record;
-        examResultRef.get().then((examResultSnap) async {
-          Map<String, dynamic> examResultMap;
-          if(examResultSnap.exists) {
-            examResultMap = examResultSnap.data;
-            if(examResultMap['record'].length >= 20) {
-              int removeIndex = -1;
-              int completeTime = examResult.totalTimeIn100ms();
-              for(int i = 0; i < examResultMap['record'].length; i++) {
-                ExamResult tempResult = ExamResult.fromMap(examResultMap['record'][i]);
-                if(tempResult.totalTimeIn100ms() > completeTime) {
-                  removeIndex = i;
-                  completeTime = tempResult.totalTimeIn100ms();
-                }
-              }
-              if(removeIndex != -1) {
-                examResultMap['record'].removeAt(removeIndex);
-              } else {
-                examResultMap = null;
-              }
-            }
-          } else {
-            examResultMap = Map<String, dynamic>();
-            examResultMap['record'] = [];
-          }
-          if(examResultMap != null) {
-            examResultMap['record'].add(examResult.toMap());
-            await examResultRef.setData(examResultMap);
-          }
-        });   
-        // update all user's play record
         examResult.results.forEach((result) {
           var firstResultCollectionRef = 
             questionCollectionRef.document(result.questionId).collection('userFirstResult');
@@ -92,90 +69,56 @@ class ExamService {
             }
           });
         });
-      /*
-      } else {
-        //For Web
-        var examResultRef = 
-            webFirestore
-            .collection('ExamResult').doc(category);    
-        var questionCollectionRef = 
-            webFirestore.collection('question');
-        // find the smallest record;
-        examResultRef.get().then((examResultSnap) async {
-          Map<String, dynamic> examResultMap;
-          if(examResultSnap.exists) {
-            examResultMap = examResultSnap.data();
-            if(examResultMap['record'].length >= 20) {
-              int removeIndex = -1;
-              int completeTime = examResult.totalTimeIn100ms();
-              for(int i = 0; i < examResultMap['record'].length; i++) {
-                ExamResult tempResult = ExamResult.fromMap(examResultMap['record'][i]);
-                if(tempResult.totalTimeIn100ms() > completeTime) {
-                  removeIndex = i;
-                  completeTime = tempResult.totalTimeIn100ms();
-                }
-              }
-              if(removeIndex != -1) {
-                examResultMap['record'].removeAt(removeIndex);
-              } else {
-                examResultMap = null;
-              }
-            }
-          } else {
-            examResultMap = Map<String, dynamic>();
-            examResultMap['record'] = [];
-          }
-          if(examResultMap != null) {
-            examResultMap['record'].add(examResult.toMap());
-            await examResultRef.set(examResultMap);
-          }
-        });   
-        // update all user's play record
-        examResult.results.forEach((result) {
-          var firstResultCollectionRef = 
-            questionCollectionRef.doc(result.questionId).collection('userFirstResult');
-          firstResultCollectionRef.doc(user.id).get().then((value) {
-            if(!value.exists) {
-              firstResultCollectionRef.doc(user.id).set(result.toMap());
-              firstResultCollectionRef.doc('summary').get().then((summary) {
-                Map<String, dynamic> summaryData;
-                if(summary.exists) {
-                  summaryData = summary.data();              
-                  summaryData['total']++;
-                } else {
-                  summaryData = new Map<String, dynamic>();
-                  summaryData['firstPassCount'] = 0;
-                  summaryData['firstPassAverageTime'] = 0;
-                  summaryData['total'] = 1;
-                }
-                if(result.correct) {
-                  double firstPassAverageTime = summaryData['firstPassAverageTime'];
-                  firstPassAverageTime *= summaryData['firstPassCount'];
-                  firstPassAverageTime += result.timeIn100ms;
-                  summaryData['firstPassCount']++;
-                  summaryData['firstPassAverageTime'] = firstPassAverageTime / summaryData['firstPassCount'];
-                }
-                firstResultCollectionRef.doc('summary').set(summaryData);
-              });
-            }
-            if(user.updateQuestionIDs(result.questionId)) {
-              authService.updateUser(user);
-            }
-          });
-        });
-        
-      }     */
+
     } catch (exception) {
       print(exception);
     }
   }
 
-  Future getResultList(String category, Function returnResultList) async {
+  static Future _updateTopXExamResult(MobFirestore.DocumentReference examResultRef, ExamResult examResult, int topX) async {
+    // find the smallest record;
+    examResultRef.get().then((examResultSnap) async {
+      Map<String, dynamic> examResultMap;
+      if(examResultSnap.exists) {
+        examResultMap = examResultSnap.data;
+        if(examResultMap['record'].length >= topX) {
+          int removeIndex = -1;
+          int completeTime = examResult.totalTimeIn100ms();
+          for(int i = 0; i < examResultMap['record'].length; i++) {
+            ExamResult tempResult = ExamResult.fromMap(examResultMap['record'][i]);
+            if(tempResult.totalTimeIn100ms() > completeTime && examResult.results.length > tempResult.results.length ) {
+              removeIndex = i;
+              completeTime = tempResult.totalTimeIn100ms();
+            }
+          }
+          if(removeIndex != -1) {
+            examResultMap['record'].removeAt(removeIndex);
+          } else {
+            examResultMap = null;
+          }
+        }
+      } else {
+        examResultMap = Map<String, dynamic>();
+        examResultMap['record'] = [];
+      }
+      if(examResultMap != null) {
+        examResultMap['record'].add(examResult.toMap());
+        await examResultRef.setData(examResultMap);
+      }
+    }); 
+  }
+
+  Future getResultList(String category, String userid, Function returnResultList) async {
     List<ExamResult> examResults = [];
     try {
       //if (!kIsWeb) {
         //For mobile
-        var mobQuery = mobFirestore.collection('ExamResult').document(category);
+        MobFirestore.DocumentReference mobQuery;
+        if(userid == null) {
+          mobQuery = mobFirestore.collection('ExamResult').document(category);
+        } else {
+          mobQuery = mobFirestore.collection('User').document(userid).collection('ExamResult').document(category);
+        }
         return mobQuery.get().then((value) {
           if(value.exists) {
             Map<String, dynamic> examResultMap = value.data;
@@ -186,23 +129,6 @@ class ExamService {
           }
           returnResultList(examResults);
         });
-      /*  
-      } else {
-        //For Web
-  //      WebFirestore.SetOptions options;
-        var webQuery = webFirestore.collection('ExamResult').doc(category);
-        webQuery.get().then((value) {
-          if(value.exists) {
-            Map<String, dynamic> examResultMap = value.data();
-            examResultMap['record'].forEach((record) {
-              ExamResult examResult = ExamResult.fromMap(record);
-              examResults.add(examResult);
-            });
-          }
-          returnResultList(examResults);
-        });
-      }     
-      */
     } catch (exception) {
       print(exception);
       returnResultList(examResults);

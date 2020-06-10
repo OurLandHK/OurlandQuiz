@@ -63,7 +63,7 @@ class QuestionService {
       indexData['imageUrl'] = downloadUrl;
       indexData['bitbucketUrl'] = serverUrl;
     }
-    if(imageUrls != null) {
+    if(descImageUrls != null) {
       downloadUrl = descImageUrls['downloadUrl'];
       serverUrl =  descImageUrls['serverUrl'];
       indexData['descImageUrl'] = downloadUrl;

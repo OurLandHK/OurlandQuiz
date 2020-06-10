@@ -46,7 +46,6 @@ class LayoutTemplateState extends State<LayoutTemplate> {
                   child: Navigator(
                     key: locator<NavigationService>().navigatorKey,
                     onGenerateRoute: generateRoute,
-                    //initialRoute: Routes[0],
                     initialRoute: initialRoute,
                   ),
                 )

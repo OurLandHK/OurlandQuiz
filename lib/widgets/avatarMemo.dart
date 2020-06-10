@@ -2,35 +2,34 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 
 import '../models/textRes.dart';
-import '../models/news.dart';
-import './DateTimeWidget.dart';
+import '../models/userModel.dart';
+import '../routing/routeNames.dart';
+import '../locator.dart';
+import '../services/navigationService.dart';
 
-class NewsMemo extends StatelessWidget {
-  final News news;
-  NewsMemo(this.news);
+class AvatarMemo extends StatelessWidget {
+  final User user;
+  AvatarMemo(this.user);
+
+   void _onTap() async {
+      locator<NavigationService>().navigateTo('/${Routes[3].route}/${user.id}');
+  }
 
   @override
   Widget build(BuildContext context) {
-    double fontSize = MediaQuery.of(context).size.width * 0.04;
-    if(fontSize > 28) {
-      fontSize = 28;
-    }
-    double smallFontSize = MediaQuery.of(context).size.width * 0.03;
-    List<Widget> widgets = [
-      Row(children:
-        [Text(news.title, style: TextStyle(fontSize: fontSize)),
-          Expanded(flex: 1,child: Container(),),
-          DateTimeWidget(news.createdAt , smallFontSize, null),
-        ])];
-    widgets.add(Row(children:[Text(news.detail, style: TextStyle(fontSize: smallFontSize))]));
+    double width = MediaQuery.of(context).size.width;
+    double fontSize = 10;
+    double smallFontSize = fontSize/2;
+    List<Widget> widgets = [Icon(Icons.person, size: width/15)];
+    widgets.add(Row(children:[Text(user.name, style: TextStyle(fontSize: fontSize))]));
     Widget rv = GestureDetector(
-          //onTap: () {tapWithCategory(category);},
+          onTap: _onTap,
           child: Padding(
             padding: const EdgeInsets.all(4.0),
             child: Container(
               padding: EdgeInsets.all(4.0),
               decoration: BoxDecoration(
-                color: MEMO_COLORS[news.title.hashCode % MEMO_COLORS.length],
+                color: MEMO_COLORS[user.id.hashCode % MEMO_COLORS.length],
                 border: Border.all(width: 1, color: Colors.grey),
                 boxShadow: [
                   new BoxShadow(
@@ -43,6 +42,7 @@ class NewsMemo extends StatelessWidget {
                 //borderRadius: BorderRadius.circular(6.0)
                 ),
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: widgets
               ),
             ),

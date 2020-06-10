@@ -7,7 +7,7 @@ import 'package:flutter/widgets.dart';
 import './routeNames.dart';
 import '../models/question.dart';
 import '../models/examResult.dart';
-import '../screens/quizMainScreen.dart';
+import '../models/userModel.dart';
 import '../screens/submitMainScreen.dart';
 import '../screens/userMainScreen.dart';
 import '../screens/resultMainScreen.dart';
@@ -19,8 +19,9 @@ import '../screens/ViewResultScreen.dart';
 Route<dynamic> generateRoute(RouteSettings settings) {
   String route = Routes[0].route;
   List<String> path = [route];
+  print(settings.arguments);
+  print(settings.name);
   if(settings != null) {
-    //print("${settings.name} ${settings.arguments}");
     if(settings.name != null) {
       path = Uri.decodeFull(Uri.parse(settings.name).toString()).split("/");
       //print(path);
@@ -29,7 +30,6 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       }
     }
   }
-  //print('$path');
   if(route == Routes[1].route) {
     if(path.length == 2 || (path[2] != textRes.LABEL_QUICK_GAME && !categories.containsKey(path[2]))) {
       return _getPageRoute(SubmitMainScreen(), '/'+route);
@@ -53,7 +53,7 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       return _getPageRoute(resultMain, '/'+Routes[2].route);
     }
     if(path.length == 3) {
-      return _getPageRoute(ListResultScreen(category: path[2]), settings.name);
+      return _getPageRoute(ListResultScreen(category: path[2], userid: null), settings.name);
     }
     int rank = 1;
     rank = int.parse(path[3]);
@@ -64,10 +64,31 @@ Route<dynamic> generateRoute(RouteSettings settings) {
     return _getPageRoute(ViewResultScreen(category: path[2], rank: rank, examResult: examResult), settings.name);
   }
   if(route == Routes[3].route) {
+    String userid;
     if(path.length == 2) {
-      return _getPageRoute(UserMainScreen(), '/'+route);
+      path.add(user.id);
+      userid = user.id;
+    } else {
+      userid = path[2];
     }
-    return _getPageRoute(ListQuestionsScreen(category: null, userId: user.id), settings.name);
+    if(path.length == 4) {
+      print(settings.name);
+      switch(path[3]) {
+        case 'result':
+          return _getPageRoute(ResultMainScreen(categories.keys.toList(), userid), settings.name);
+          break;
+        case 'question':
+          return _getPageRoute(ListQuestionsScreen(category: null, userId: userid), settings.name);
+          break;
+      }
+    }
+    if(path.length == 5) {
+      print(settings.name);
+      if(path[3] == 'result') {
+        return _getPageRoute(ListResultScreen(category: path[4], userid: userid), settings.name);
+      }
+    }
+    return _getPageRoute(UserMainScreen(userid: userid), '/'+Routes[3].route +'/'+userid);
   }
   return _getPageRoute(quizMain, '/'+Routes[0].route);
 }
