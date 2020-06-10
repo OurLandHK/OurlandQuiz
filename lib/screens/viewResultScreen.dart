@@ -67,7 +67,7 @@ class ViewResultState extends State<ViewResultScreen> {
 
   // Platform messages are asynchronous, so we initialize in an async method.
   initPlatformState() async {
-    examService.getResultList(widget.category, this.updateResultList);
+    examService.getResultList(widget.category, null, this.updateResultList);
   }
 
   void updateResultList(List<ExamResult> examResults) {

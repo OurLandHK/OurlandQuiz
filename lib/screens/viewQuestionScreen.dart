@@ -23,6 +23,7 @@ import '../models/question.dart';
 import '../helper/uiHelper.dart';
 import '../models/userModel.dart';
 import '../widgets/DateTimeWidget.dart';
+import '../widgets/avatarMemo.dart';
 
 
 
@@ -49,7 +50,7 @@ class ViewQuestionState extends State<ViewQuestionScreen> {
   String _desc = "";
   String _parentTitle = "";
   String _reference = "";
-  String _questionUserName ="";
+  Widget _questionMemo = Container();
   bool _isSubmitDisable;
   Question question;
   User questionUser;
@@ -139,7 +140,7 @@ class ViewQuestionState extends State<ViewQuestionScreen> {
       _textController.text = this.question.title;
       _reference = this.question.referenceUrl;
       _newTitleLabel = _parentTitle;
-      _questionUserName = this.questionUser.name;
+      _questionMemo = AvatarMemo(this.questionUser);
       _color = this.question.color;
       _isSubmitDisable = false;
       _descController = TextEditingController(text: this.question.explanation);
@@ -291,7 +292,7 @@ class ViewQuestionState extends State<ViewQuestionScreen> {
   Widget tagUI(BuildContext context) {
     List<Chip> chips = [];
     this._tags.forEach((tag) {
-      chips.add(Chip(label: Text(tag)));
+      chips.add(Chip(label: Text(tag),labelStyle: Theme.of(context).textTheme.subtitle1));
     });
     return Wrap(runSpacing: 4.0, spacing: 8.0, children: chips);
   }
@@ -444,7 +445,7 @@ class ViewQuestionState extends State<ViewQuestionScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          tagUI(context),
+          Row(children: [_questionMemo, DateTimeWidget(this.question.created, null, textRes.LABEL_CREATE_TIME), tagUI(context)]),
           titleUI(context, 0),          
           topicImageUI(context),
           //answerHeader(context),
@@ -454,7 +455,6 @@ class ViewQuestionState extends State<ViewQuestionScreen> {
           optionWidget(context, 3),
           optionWidget(context, 4),            
           const SizedBox(height: 5.0),
-          Row(children: [Text("${this._questionUserName}:"), DateTimeWidget(this.question.created, null)]),
           const SizedBox(height: 12.0),
           referenceWidget(context,12),
           const SizedBox(height: 5.0),

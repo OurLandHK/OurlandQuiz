@@ -87,13 +87,12 @@ class QuestionWidget extends StatelessWidget {
       List<Widget> footers = []; 
     
       for(int i = 0; i< this.question.tags.length && i < 3 ; i++) {
-  //      footers.add(Chip(label: Text(this.topic.tags[i], style: Theme.of(context).textTheme.subtitle), backgroundColor: TOPIC_COLORS_DARKER[this.topic.color]));
-        footers.add(Text("#${this.question.tags[i]}", style: Theme.of(context).textTheme.subtitle));
-
+        footers.add(Chip(label: Text(this.question.tags[i]), labelStyle: Theme.of(context).textTheme.subtitle1));
+        //footers.add(Text("#${this.question.tags[i]}", style: Theme.of(context).textTheme.subtitle));
       }
         
       // Time
-      Widget timeWidget = DateTimeWidget(this.question.created, null);
+      Widget timeWidget = DateTimeWidget(this.question.created, null, null);
       footers.add(Expanded(flex: 1, child: Container()));
       footers.add(timeWidget);
       

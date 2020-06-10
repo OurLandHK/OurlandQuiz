@@ -1,3 +1,4 @@
+import 'package:OurlandQuiz/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -15,7 +16,8 @@ import '../widgets/categoryMemo.dart';
 final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
 class UserMainScreen extends StatefulWidget {
-  UserMainScreen({Key key});
+  String userid;
+  UserMainScreen({Key key, @required this.userid});
 
   @override
   State createState() => new UserMainState();
@@ -23,6 +25,7 @@ class UserMainScreen extends StatefulWidget {
 
 class UserMainState extends State<UserMainScreen> {
   final ScrollController listScrollController = new ScrollController();
+  User _profileUser;
 
   @override
   void initState() {
@@ -31,30 +34,44 @@ class UserMainState extends State<UserMainScreen> {
 
   // Platform messages are asynchronous, so we initialize in an async method.
   initPlatformState() async {
-    // If the widget was removed from the tree while the asynchronous platform
-    // message was in flight, we want to discard the reply rather than calling
-    // setState to update our non-existent appearance.
-    //if (!mounted) return;
-
-    setState(() {
+    authService.getUser(widget.userid).then((profileUser) {
+      setState(() {
+        _profileUser = profileUser;
+      });
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    Widget body = gameSet(context);   
-    return  Container(
+    String title = _profileUser == null ? widget.userid: _profileUser.name;
+    Widget rv = Container(
         child: SafeArea(
           top: false,
           bottom: false,
-          child: body
+          child: gameSet(context)
         ),
       );
+    if(widget.userid != user.id) {
+      rv = Scaffold(
+        appBar: new AppBar(
+          backgroundColor: MEMO_COLORS[9],
+          title: new Text(
+            title,
+            style: TextStyle(/*color: primaryColor,*/ fontWeight: FontWeight.bold),
+            ),
+            centerTitle: true,
+            elevation: 0.7,
+            actionsIconTheme: Theme.of(context).primaryIconTheme,
+        ),
+        body: rv
+      );
+    }
+    return rv;
   }
 
   void _onTap(String menuItem) async {
     if(menuItem == textRes.USER_SETTING_MENU[0]) {
-      locator<NavigationService>().navigateTo('/${Routes[3].route}/${user.id}');
+      locator<NavigationService>().navigateTo('/${Routes[3].route}/${widget.userid}/question');
     } 
     if(menuItem == textRes.USER_SETTING_MENU[1]) {
       showDialog<void>(
@@ -72,13 +89,20 @@ class UserMainState extends State<UserMainScreen> {
         return GetUserScreen();
       }); 
     }
+    if(menuItem == textRes.USER_SETTING_MENU[3]) {
+      locator<NavigationService>().navigateTo('/${Routes[3].route}/${widget.userid}/result');
+    } 
   }
 
   Widget gameSet(BuildContext context) {
     List<Widget> buttonWidgets = [];
+    int i = 0;
     textRes.USER_SETTING_MENU.forEach((label) {
-      buttonWidgets.add(const SizedBox(height: 5.0));
-      buttonWidgets.add(CategoryMemo(label, _onTap, []));
+      if(widget.userid == user.id || i == 0 || i == 3) {
+        buttonWidgets.add(const SizedBox(height: 5.0));
+        buttonWidgets.add(CategoryMemo(label, _onTap, []));
+      }
+      i++;
     });
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),

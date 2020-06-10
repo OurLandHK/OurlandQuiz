@@ -10,6 +10,6 @@ const List<RouteEntry> Routes =
   [RouteEntry('quiz', '考試', Icons.layers),
   RouteEntry('topic', '課程', Icons.dashboard),
   RouteEntry('result', '排行榜', Icons.access_alarm),
-  RouteEntry('me', '個人', Icons.bookmark)];
+  RouteEntry('profile', '個人', Icons.bookmark)];
 
 const String QuestionRoute = 'question';

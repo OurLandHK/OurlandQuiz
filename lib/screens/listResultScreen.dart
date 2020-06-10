@@ -24,13 +24,15 @@ import '../models/textRes.dart';
 import '../services/examService.dart';
 import '../services/auth.dart';
 import '../models/examResult.dart';
+import '../models/userModel.dart';
 import '../widgets/resultWidget.dart';
 
 final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
 class ListResultScreen extends StatefulWidget {
   final String category;
-  ListResultScreen({Key key, @required this.category});
+  final String userid;
+  ListResultScreen({Key key, @required this.category, @required this.userid});
 
   @override
   State createState() => new ListResultState();
@@ -48,7 +50,7 @@ class ListResultState extends State<ListResultScreen> {
   void initState() {
     super.initState();
     _newTitleLabel = widget.category;
-    examService.getResultList(widget.category, this.updateResultList);
+    examService.getResultList(widget.category, widget.userid, this.updateResultList);
     //initPlatformState();
   }
 
@@ -101,11 +103,12 @@ class ListResultState extends State<ListResultScreen> {
       ),
       body: Container(
         color: MEMO_COLORS[_color],
-        //child: new Container(),
         child: SafeArea(
           top: false,
           bottom: false,
-          child: body
+          child: SingleChildScrollView(
+            child: body
+          ),
         ),
 
       ),
