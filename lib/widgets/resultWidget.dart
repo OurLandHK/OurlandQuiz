@@ -57,7 +57,7 @@ class ResultState extends State<ResultWidget> {
     }
 
     void _onTapForView() async {
-      locator<NavigationService>().navigateTo('/${Routes[2].route}/${widget.category}/${widget.rank}', arguments: widget.examResult);
+      locator<NavigationService>().navigateTo('/${MainRoutes[2].route}/${widget.category}/${widget.rank}', arguments: widget.examResult);
     }
     
     void _onTap() {

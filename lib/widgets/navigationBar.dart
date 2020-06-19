@@ -49,8 +49,8 @@ class FAB_Bar extends StatelessWidget {
   @override 
   Widget build(BuildContext context) {
     List<FABBottomAppBarItem> children = [];
-    for(int i = 0; i < Routes.length; i++) {
-      children.add(FABBottomAppBarItem(iconData: Routes[i].iconData, text: Routes[i].label));  //children.add(SizedBox(width: 60,));
+    for(int i = 0; i < MainRoutes.length; i++) {
+      children.add(FABBottomAppBarItem(iconData: MainRoutes[i].iconData, text: MainRoutes[i].label));  //children.add(SizedBox(width: 60,));
     }
     
     return FABBottomAppBar(
@@ -63,7 +63,7 @@ class FAB_Bar extends StatelessWidget {
           
           onTabSelected: (_selectedTab) {
             //print('Selected Tab $_selectedTab');
-            locator<NavigationService>().navigateTo('/'+Routes[_selectedTab].route);
+            locator<NavigationService>().navigateTo('/'+MainRoutes[_selectedTab].route);
             },
           items: children
         );
@@ -98,8 +98,8 @@ class NavigationBarTabletDesktop extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     List<Widget> children = [];
-    for(int i = 0; i < Routes.length; i++) {
-      children.add(Expanded(flex: 1, child:NavBarItem(Routes[i].label, Routes[i].route)));
+    for(int i = 0; i < MainRoutes.length; i++) {
+      children.add(Expanded(flex: 1, child:NavBarItem(MainRoutes[i].label, MainRoutes[i].route)));
       //children.add(SizedBox(width: 60,));
     }
     return Container(

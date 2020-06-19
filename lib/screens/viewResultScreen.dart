@@ -32,9 +32,10 @@ final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
 class ViewResultScreen extends StatefulWidget {
   final String category;
+  final String mode;
   final ExamResult examResult;
   final int rank;
-  ViewResultScreen({Key key, @required this.category, @required this.rank, @required this.examResult});
+  ViewResultScreen({Key key, @required this.mode, @required this.category, @required this.rank, @required this.examResult});
   //final int totalQuestion = 3;
 
   @override
@@ -67,7 +68,7 @@ class ViewResultState extends State<ViewResultScreen> {
 
   // Platform messages are asynchronous, so we initialize in an async method.
   initPlatformState() async {
-    examService.getResultList(widget.category, null, this.updateResultList);
+    examService.getResultList(widget.mode, widget.category, null, this.updateResultList);
   }
 
   void updateResultList(List<ExamResult> examResults) {

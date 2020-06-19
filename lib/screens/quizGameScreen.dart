@@ -28,9 +28,10 @@ import '../main.dart';
 //final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
 class QuizGameScreen extends StatefulWidget {
+  final String mode;
   final String category;
-  QuizGameScreen({Key key, @required this.category});
-  final int totalQuestion = 10;
+  QuizGameScreen({Key key, @required this.mode, @required this.category, @required this.totalQuestion});
+  final int totalQuestion;
   //final int totalQuestion = 3;
 
   @override
@@ -69,11 +70,14 @@ class QuizGameState extends State<QuizGameScreen> {
   int _start = 30;
   
   static const int BaseQuestionTime = 100;
+  static int TotalQuestionTime = textRes.TOTAL_TIME * 10;
   static const int BaseText = 120;
   static const int TextFactor = 12;
   static const int QuestionTimeFactor = 10;
   int _currentQuestionTime = BaseQuestionTime;
   int _maxQuestionTime = BaseQuestionTime;
+  int _beginQuestionTime = BaseQuestionTime;
+  bool _pauseTimer = false;
 
   void nextQuestion(BuildContext context) {
     //print("Next question ID ${this._questionIDs[this.questionIndex]}");
@@ -81,27 +85,50 @@ class QuizGameState extends State<QuizGameScreen> {
       //print("question ${question}");
       _questions.add(question);
       const oneTenthSec = const Duration(milliseconds: 100);
-      if(_timer != null) {
-        _timer.cancel();
-        _maxQuestionTime = BaseQuestionTime;
-        if(question.totalText() > BaseText) {
-          _maxQuestionTime += (((question.totalText() - BaseText) / TextFactor).ceil() * QuestionTimeFactor);
+      if(widget.mode == GameModes[FIX_TIME_GAME_INDEX].label) {
+        if(_questions.length == 1) {
+          _maxQuestionTime = TotalQuestionTime;
+          _currentQuestionTime = _maxQuestionTime;
+          _beginQuestionTime = _maxQuestionTime;
+          _timer = new Timer.periodic(
+            oneTenthSec,
+            (Timer timer) => setState(
+              () {
+                if (_currentQuestionTime < 1) {
+                  validateAnswer(context);
+                } else {
+                  if(!_pauseTimer) {
+                    _currentQuestionTime -= 1;
+                  }
+                }
+              },
+            ),
+          );
         }
-        print("Total Text ${question.totalText()} , $_maxQuestionTime");
-        _currentQuestionTime = _maxQuestionTime;
+      } else {  
+        if(_timer != null) {
+          _timer.cancel();
+          _maxQuestionTime = BaseQuestionTime;
+          if(question.totalText() > BaseText) {
+            _maxQuestionTime += (((question.totalText() - BaseText) / TextFactor).ceil() * QuestionTimeFactor);
+          }
+          print("Total Text ${question.totalText()} , $_maxQuestionTime");
+          _currentQuestionTime = _maxQuestionTime;
+          _beginQuestionTime = _maxQuestionTime;
+        }
+        _timer = new Timer.periodic(
+          oneTenthSec,
+          (Timer timer) => setState(
+            () {
+              if (_currentQuestionTime < 1) {
+                validateAnswer(context);
+              } else {
+                _currentQuestionTime -= 1;
+              }
+            },
+          ),
+        );
       }
-      _timer = new Timer.periodic(
-        oneTenthSec,
-        (Timer timer) => setState(
-          () {
-            if (_currentQuestionTime < 1) {
-              validateAnswer(context);
-            } else {
-              _currentQuestionTime -= 1;
-            }
-          },
-        ),
-      );
       TextStyle qtextStyle = pickTitleTextStyle(context, question.title, question.imageUrl);
       String maxOption = question.options[0];
       question.options.forEach((element) { if(maxOption.length < element.length) maxOption =element; });
@@ -117,6 +144,7 @@ class QuizGameState extends State<QuizGameScreen> {
         _color = question.color;
         _answers = [false, false, false, false, false];
         _submitDisable = false;
+        _pauseTimer = false;
       });
     });
   }
@@ -139,7 +167,7 @@ class QuizGameState extends State<QuizGameScreen> {
   }
 
   TextStyle pickOptionTextStyle(BuildContext context, String text) {
-    double height = MediaQuery.of(context).size.height;
+    //double height = MediaQuery.of(context).size.height;
     double fontSize = 16;
     double textLenghtFactor = 1 - (text.length / 50) * 0.1;
     fontSize *= textLenghtFactor;
@@ -228,13 +256,18 @@ class QuizGameState extends State<QuizGameScreen> {
     });
     String cat = widget.category;
     if(cat.length == 0) {
-      cat = textRes.LABEL_QUICK_GAME;
+      cat = textRes.LABEL_ALL;
     }
-    examService.submitExamResult(cat, user, _examResult);
+    print("1 ${widget.mode + cat}");
+    examService.submitExamResult(widget.mode, cat, user, _examResult);
+    print('2');
   }
 
   void validateAnswer(BuildContext context) async {
-    _timer.cancel();
+    if(widget.mode != GameModes[FIX_TIME_GAME_INDEX].label) {
+      _timer.cancel();
+    }
+    _pauseTimer = true;
     bool correct = true;
     List<String> userAnswerSet = [];
     for(int i = 0; i < this._answers.length; i++) {
@@ -244,20 +277,24 @@ class QuizGameState extends State<QuizGameScreen> {
     }
     // todo add to user result;
     //print("${userAnswerSet} ${this._questions[questionIndex].answers.toSet()}");
-    int questionTime = _maxQuestionTime - _currentQuestionTime;
+    int questionTime = _beginQuestionTime - _currentQuestionTime;
     if(userAnswerSet.toSet().intersection(this._questions[questionIndex].answers.toSet()).length !=
     userAnswerSet.toSet().union(this._questions[questionIndex].answers.toSet()).length) {
       correct = false;
-      questionTime = _maxQuestionTime;
+      questionTime = _beginQuestionTime;
     }
     Result _result = new Result(this._questions[questionIndex].id, userAnswerSet, questionTime, correct);
     _examResult.results.add(_result);
     await showResult(context, correct);
     questionIndex++;
-    if(questionIndex < _questionIDs.length) {
-      nextQuestion(context);
-    } else {
+    if(widget.mode == GameModes[FIX_TIME_GAME_INDEX].label && _currentQuestionTime < 1) {
       sendReport();
+    } else {
+      if(questionIndex < _questionIDs.length ) {
+        nextQuestion(context);
+      } else {
+        sendReport();
+      }
     }
   }
 
@@ -279,7 +316,7 @@ class QuizGameState extends State<QuizGameScreen> {
     setState(() {
       _overlayWidget = Container();
     });
-    print('remove result');
+    //print('remove result');
     await Future.delayed(Duration(milliseconds: 10));
   }
 

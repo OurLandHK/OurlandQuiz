@@ -13,7 +13,7 @@ class CategoryMemo extends StatelessWidget {
   Widget build(BuildContext context) {
     String title = category;
     if(category.length == 0) {
-      title = textRes.LABEL_QUICK_GAME;
+      title = textRes.LABEL_ALL;
     } 
     double fontSize = MediaQuery.of(context).size.width * 0.06;
     if(fontSize > 40) {

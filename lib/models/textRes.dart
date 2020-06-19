@@ -19,10 +19,21 @@ const List<Color> MEMO_COLORS = [
   Color(0xFFD0D0D0),
 ];
 
+class GameModeEntry{
+  final String label;
+  final String desc;
+  //final IconData iconData;
+  const GameModeEntry(this.label, this.desc);
+}
+
+const int FIX_TIME_GAME_INDEX = 1;
+List<GameModeEntry> GameModes = [GameModeEntry("榮光十問","每條問題限時鬥快答十條"), GameModeEntry("中中中又中","限時${textRes.TOTAL_TIME}秒鬥多答中")];
+
 class TextRes {
   TextRes();
 
-  String get LABEL_ALL => "全部";
+  int get TOTAL_TIME => 300;
+  String get LABEL_ALL => "全部題目";
 
   // addQuestionScreen
   String get HINT_QUESTION => "問題Hint";

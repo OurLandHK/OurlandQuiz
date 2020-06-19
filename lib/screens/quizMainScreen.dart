@@ -53,7 +53,7 @@ class QuizMainState extends State<QuizMainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    Widget body = gameSet(context);     
+    Widget body = gameMode(context);     
     return Container(
         child: SafeArea(
           top: false,
@@ -63,51 +63,39 @@ class QuizMainState extends State<QuizMainScreen> {
       );
   }
 
-  void _onTap(String category) async {
-    layoutTemplate.showNaviBar(false);
-    Navigator.push(context, 
-      MaterialPageRoute(
-        builder: (context) =>  QuizGameScreen(category: category)
-      ),
-    );
+  Future<bool> onBackPress() {
+    Navigator.pop(context);
+    return Future.value(false);
+  }
 
-    /*
-    Navigator.of(context).push(
-      new MaterialPageRoute<void>(
-        builder: (BuildContext context) {
-          return QuizGameScreen(category: category);
-        },
-      ),
-    );
-    */
+  void _onTapGameMode(String mode) async {
+    showDialog<void>(
+      context: context,
+      //barrierDismissible: true, 
+      builder: (BuildContext context) {
+        return GameModeDialog(mode, quizCategories);
+    }); 
   }
 
   void _addNews(String dummy) async {
     showDialog<void>(
       context: context,
-      //barrierDismissible: false, // user must tap button!
+      //barrierDismissible: true, // user must tap button!
       builder: (BuildContext context) {
         return AddNewsScreen();
       }); 
   }
 
-  Widget gameSet(BuildContext context) {
-    List<Widget> buttonWidgets = [
-      Text(
+  Widget gameMode(BuildContext context) {
+    List<Widget> buttonWidgets = [Text(
             textRes.LABEL_WELCOME_BACK + user.name,
             style: TextStyle(/*color: primaryColor,*/ fontWeight: FontWeight.bold),
           ),
       NewsWidget(),
-      CategoryMemo("", _onTap, ["${textRes.LABEL_TOTAL_QUESTION} : $_totalQuestion"])
     ];
-      
-    quizCategories.forEach((category) {
-      int totalQuestion = _totalQuestion;
-      if(category.length != 0) {
-        totalQuestion = categories[category]['count'];
-      }
+    GameModes.forEach((gameMode) {
       buttonWidgets.add(const SizedBox(height: 5.0));
-      buttonWidgets.add(CategoryMemo(category, _onTap, ["${textRes.LABEL_TOTAL_QUESTION} : $totalQuestion"]));
+      buttonWidgets.add(CategoryMemo(gameMode.label, _onTapGameMode, [gameMode.desc]));
     });
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -115,6 +103,76 @@ class QuizMainState extends State<QuizMainScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: buttonWidgets
       )
+    );
+  }
+}
+
+class GameModeDialog extends StatelessWidget {
+  String mode;
+  List<String> quizCategories;
+  GameModeDialog(this.mode, this.quizCategories) ;
+  BuildContext _context;
+
+  void _onTap(String category) async {
+    int totalQuestion = 10;
+    if(GameModes[FIX_TIME_GAME_INDEX].label == mode) {
+      totalQuestion = 30;
+    }
+    layoutTemplate.showNaviBar(false);
+    Navigator.pop(_context);
+    Navigator.push(_context, 
+      MaterialPageRoute(
+        builder: (context) =>  QuizGameScreen(mode: mode, category: category, totalQuestion: totalQuestion)
+      ),
+    );
+  }
+
+  Future<bool> onBackPress() {
+    Navigator.pop(_context);
+    return Future.value(false);
+  }
+  
+
+  Widget gameSet(BuildContext context) {
+    List<Widget> buttonWidgets = [];
+    int totalQuestion = 0;
+    quizCategories.forEach((category) {
+      int questionCount = categories[category]['count'];
+      totalQuestion += categories[category]['count'];
+      buttonWidgets.add(const SizedBox(height: 5.0));
+      buttonWidgets.add(CategoryMemo(category, _onTap, ["${textRes.LABEL_TOTAL_QUESTION} : $questionCount"]));
+    });
+    buttonWidgets.insert(0, CategoryMemo("", _onTap, ["${textRes.LABEL_TOTAL_QUESTION} : $totalQuestion"]));
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: buttonWidgets
+      )
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    _context = context;
+    
+    Widget body = new WillPopScope(
+      child: Container(
+        child: SafeArea(
+          top: false,
+          bottom: false,
+          child: gameSet(context)
+        )
+      ),
+      onWillPop: onBackPress,
+    );
+    return AlertDialog(
+        title: Text(
+            mode,
+            style: TextStyle(/*color: primaryColor,*/ fontWeight: FontWeight.bold),
+          ),
+        content: SingleChildScrollView(child: body),
+        //actions: [_buildSubmit(context)]
     );
   }
 }

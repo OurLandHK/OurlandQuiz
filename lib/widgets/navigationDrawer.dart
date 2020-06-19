@@ -31,8 +31,8 @@ class NavigationDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     List<Widget> children = [NavigationDrawerHeader()];
-    for(int i = 0; i < Routes.length; i++) {
-      children.add(DrawerItem(Routes[i].label, Routes[i].iconData, Routes[i].route));
+    for(int i = 0; i < MainRoutes.length; i++) {
+      children.add(DrawerItem(MainRoutes[i].label, MainRoutes[i].iconData, MainRoutes[i].route));
     }
     return Container(
       width: 300,

@@ -71,7 +71,7 @@ class UserMainState extends State<UserMainScreen> {
 
   void _onTap(String menuItem) async {
     if(menuItem == textRes.USER_SETTING_MENU[0]) {
-      locator<NavigationService>().navigateTo('/${Routes[3].route}/${widget.userid}/question');
+      locator<NavigationService>().navigateTo('/${MainRoutes[3].route}/${widget.userid}/question');
     } 
     if(menuItem == textRes.USER_SETTING_MENU[1]) {
       showDialog<void>(
@@ -90,7 +90,7 @@ class UserMainState extends State<UserMainScreen> {
       }); 
     }
     if(menuItem == textRes.USER_SETTING_MENU[3]) {
-      locator<NavigationService>().navigateTo('/${Routes[3].route}/${widget.userid}/result');
+      locator<NavigationService>().navigateTo('/${MainRoutes[3].route}/${widget.userid}/result');
     } 
   }
 

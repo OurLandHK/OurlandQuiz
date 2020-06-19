@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'dart:math';
 import 'package:OurlandQuiz/models/examResult.dart';
+import 'package:OurlandQuiz/models/textRes.dart';
 //import 'package:image/image.dart' as Img;
 
 
@@ -21,17 +22,31 @@ ExamService examService = new ExamService();
 class ExamService {
   ExamService();
 
-  Future<void> submitExamResult(String category, User user,ExamResult examResult) async{
+  static String _getDocumentId(String mode, String category) {
+    String gameModeSuffix = "";
+    if(mode != GameModes[0].label) {
+      for(int i = 1; i < GameModes.length; i++) {
+        if(mode == GameModes[i].label) {
+          gameModeSuffix = "_" + i.toString();
+        }
+      }
+    }
+    String documentId = category+gameModeSuffix;
+    return documentId;
+  }
+
+  Future<void> submitExamResult(String mode, String category, User user,ExamResult examResult) async{
     try {
       // update for top 20
        // update for global top 10 record
+        String documentId = _getDocumentId(mode, category);
         MobFirestore.DocumentReference examResultRef = 
             mobFirestore
-            .collection('ExamResult').document(category);           
+            .collection('ExamResult').document(documentId);           
         await _updateTopXExamResult(examResultRef, examResult, 20);
         // update for user's top 10 record
         MobFirestore.DocumentReference userExamResultRef = 
-            mobFirestore.collection('User').document(user.id).collection('ExamResult').document(category);    
+            mobFirestore.collection('User').document(user.id).collection('ExamResult').document(documentId );    
         await _updateTopXExamResult(userExamResultRef, examResult, 10);
 
         // update question play record
@@ -108,16 +123,17 @@ class ExamService {
     }); 
   }
 
-  Future getResultList(String category, String userid, Function returnResultList) async {
+  Future getResultList(String mode, String category, String userid, Function returnResultList) async {
     List<ExamResult> examResults = [];
     try {
       //if (!kIsWeb) {
         //For mobile
+        String documentId = _getDocumentId(mode, category);
         MobFirestore.DocumentReference mobQuery;
         if(userid == null) {
-          mobQuery = mobFirestore.collection('ExamResult').document(category);
+          mobQuery = mobFirestore.collection('ExamResult').document(documentId);
         } else {
-          mobQuery = mobFirestore.collection('User').document(userid).collection('ExamResult').document(category);
+          mobQuery = mobFirestore.collection('User').document(userid).collection('ExamResult').document(documentId);
         }
         return mobQuery.get().then((value) {
           if(value.exists) {

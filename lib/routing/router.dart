@@ -17,7 +17,7 @@ import '../screens/listResultScreen.dart';
 import '../screens/ViewResultScreen.dart';
 
 Route<dynamic> generateRoute(RouteSettings settings) {
-  String route = Routes[0].route;
+  String route = MainRoutes[0].route;
   List<String> path = [route];
   print(settings.arguments);
   print(settings.name);
@@ -30,15 +30,15 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       }
     }
   }
-  if(route == Routes[1].route) {
-    if(path.length == 2 || (path[2] != textRes.LABEL_QUICK_GAME && !categories.containsKey(path[2]))) {
+  if(route == MainRoutes[1].route) {
+    if(path.length == 2 || !categories.containsKey(path[2])) {
       return _getPageRoute(SubmitMainScreen(), '/'+route);
     }
     return _getPageRoute(ListQuestionsScreen(category: path[2], userId: null,), settings.name);
   }
   if(route == QuestionRoute) {
     if(path.length == 2) {
-      return _getPageRoute(SubmitMainScreen(), '/'+Routes[1].route);
+      return _getPageRoute(SubmitMainScreen(), '/'+MainRoutes[1].route);
     }
     Question question;
     //print('Testing1 ${settings.name}');
@@ -48,12 +48,28 @@ Route<dynamic> generateRoute(RouteSettings settings) {
     //print('Testing2 ${settings.name}');
     return _getPageRoute(new ViewQuestionScreen(question: question, questionId: path[2]), settings.name);
   }
-  if(route == Routes[2].route) {
-    if(path.length == 2 || (path[2] != textRes.LABEL_QUICK_GAME && !categories.containsKey(path[2]))) {
-      return _getPageRoute(resultMain, '/'+Routes[2].route);
+  if(route == MainRoutes[2].route) {
+    
+    if(path.length == 2) {
+      return _getPageRoute(resultMain, '/'+MainRoutes[2].route);
     }
+    List<String> temp = path[2].split("_");
+    String cat = temp[0];
+    String mode = GameModes[0].label;
+    if(temp.length == 2) {
+      String tempMode = temp[1];
+      int modeIndex = int.parse(tempMode);
+      if(modeIndex > 0) {
+        mode = GameModes[modeIndex].label;
+      }
+    }
+    if(cat != textRes.LABEL_ALL && !categories.containsKey(cat)) {
+      return _getPageRoute(resultMain, '/'+MainRoutes[2].route);
+    }
+    
     if(path.length == 3) {
-      return _getPageRoute(ListResultScreen(category: path[2], userid: null), settings.name);
+
+      return _getPageRoute(ListResultScreen(mode: mode, category: cat, userid: null), settings.name);
     }
     int rank = 1;
     rank = int.parse(path[3]);
@@ -61,9 +77,9 @@ Route<dynamic> generateRoute(RouteSettings settings) {
     if(settings.arguments != null) {
       examResult = settings.arguments;
     }
-    return _getPageRoute(ViewResultScreen(category: path[2], rank: rank, examResult: examResult), settings.name);
+    return _getPageRoute(ViewResultScreen(mode: mode, category: cat, rank: rank, examResult: examResult), settings.name);
   }
-  if(route == Routes[3].route) {
+  if(route == MainRoutes[3].route) {
     String userid;
     if(path.length == 2) {
       path.add(user.id);
@@ -85,12 +101,22 @@ Route<dynamic> generateRoute(RouteSettings settings) {
     if(path.length == 5) {
       print(settings.name);
       if(path[3] == 'result') {
-        return _getPageRoute(ListResultScreen(category: path[4], userid: userid), settings.name);
+        List<String> temp = path[4].split("_");
+        String cat = temp[0];
+        String mode = GameModes[0].label;
+        if(temp.length == 2) {
+          String tempMode = temp[1];
+          int modeIndex = int.parse(tempMode);
+          if(modeIndex > 0) {
+            mode = GameModes[modeIndex].label;
+          }
+        }
+        return _getPageRoute(ListResultScreen(mode: mode, category: cat, userid: userid), settings.name);
       }
     }
-    return _getPageRoute(UserMainScreen(userid: userid), '/'+Routes[3].route +'/'+userid);
+    return _getPageRoute(UserMainScreen(userid: userid), '/'+MainRoutes[3].route +'/'+userid);
   }
-  return _getPageRoute(quizMain, '/'+Routes[0].route);
+  return _getPageRoute(quizMain, '/'+MainRoutes[0].route);
 }
 
 PageRoute _getPageRoute(Widget child, String routeName) {

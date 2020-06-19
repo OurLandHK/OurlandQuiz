@@ -13,49 +13,20 @@ class ResultMainScreen extends StatelessWidget {
 
   List<String> quizCategories = [];
   final String userid;
+  BuildContext _context;
 
   ResultMainScreen(List<String> categories, @required this.userid) {
-     quizCategories = [textRes.LABEL_QUICK_GAME];
      quizCategories.addAll(categories);
   }
-
-  void _onTap(String category) async {
-    if(userid == null) {
-      locator<NavigationService>().navigateTo('/${Routes[2].route}/${category}');
-    } else {
-      locator<NavigationService>().navigateTo('/${Routes[3].route}/${userid}/result/${category}');
-    }
-  }
-
-  Widget catSet(BuildContext context) {
-    List<Widget> buttonWidgets = List<Widget>();
-    quizCategories.forEach((category) {
-      buttonWidgets.add(const SizedBox(height: 5.0));
-      buttonWidgets.add(CategoryMemo(category, _onTap, []));
-    });
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: buttonWidgets
-      )
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
+    _context = context;
     Widget body = Container(
                 color: Colors.white,
                 child: SafeArea(
                   top: false,
                   bottom: false,
-                  child: SingleChildScrollView(
-                    child:Column(
-                      children: [
-                        catSet(context),
-                      ]
-                    ), 
-                  )
+                  child: gameMode(context)
                 )
               );
     Widget rv = body;
@@ -75,5 +46,117 @@ class ResultMainScreen extends StatelessWidget {
       );
     }
     return rv;
+
+  }
+
+  Future<bool> onBackPress() {
+    Navigator.pop(_context);
+    return Future.value(false);
+  }
+
+  void _onTapGameMode(String mode) async {
+    showDialog<void>(
+      context: _context,
+      //barrierDismissible: true, 
+      builder: (BuildContext context) {
+        return ResultModeDialog(mode, quizCategories, userid);
+    }); 
+  }
+
+  Widget gameMode(BuildContext context) {
+    List<Widget> buttonWidgets = [
+    ];
+    GameModes.forEach((gameMode) {
+      buttonWidgets.add(const SizedBox(height: 5.0));
+      buttonWidgets.add(CategoryMemo(gameMode.label, _onTapGameMode, [gameMode.desc]));
+    });
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: buttonWidgets
+      )
+    );
+  }
+}
+
+class ResultModeDialog extends StatelessWidget {
+  String mode;
+  String userid;
+  List<String> quizCategories;
+  ResultModeDialog(this.mode, this.quizCategories, this.userid) ;
+  BuildContext _context;
+
+  static String _getDocumentId(String mode, String category) {
+    String gameModeSuffix = "";
+    if(mode != GameModes[0].label) {
+      for(int i = 1; i < GameModes.length; i++) {
+        if(mode == GameModes[i].label) {
+          gameModeSuffix = "_" + i.toString();
+        }
+      }
+    }
+    String documentId = category;
+    if(documentId.length == 0) {
+      documentId = textRes.LABEL_ALL;
+    }
+    documentId +=gameModeSuffix;
+    return documentId;
+  }
+
+  void _onTap(String category) async {
+    Navigator.pop(_context);
+    String catString = _getDocumentId(mode, category);
+    if(userid == null) {
+      locator<NavigationService>().navigateTo('/${MainRoutes[2].route}/${catString}');
+    } else {
+      locator<NavigationService>().navigateTo('/${MainRoutes[3].route}/${userid}/result/${catString}');
+    }
+  }
+
+  Future<bool> onBackPress() {
+    Navigator.pop(_context);
+    return Future.value(false);
+  }
+  
+
+  Widget gameSet(BuildContext context) {
+    List<Widget> buttonWidgets = [];
+    quizCategories.forEach((category) {
+      buttonWidgets.add(const SizedBox(height: 5.0));
+      buttonWidgets.add(CategoryMemo(category, _onTap, []));
+    });
+    buttonWidgets.insert(0, CategoryMemo("", _onTap, []));
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: buttonWidgets
+      )
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    _context = context;
+    
+    Widget body = new WillPopScope(
+      child: Container(
+        child: SafeArea(
+          top: false,
+          bottom: false,
+          child: gameSet(context)
+        )
+      ),
+      onWillPop: onBackPress,
+    );
+    return AlertDialog(
+        title: Text(
+            mode,
+            style: TextStyle(/*color: primaryColor,*/ fontWeight: FontWeight.bold),
+          ),
+        content: SingleChildScrollView(child: body),
+        //actions: [_buildSubmit(context)]
+    );
   }
 }

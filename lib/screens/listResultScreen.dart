@@ -31,8 +31,9 @@ final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
 class ListResultScreen extends StatefulWidget {
   final String category;
+  final String mode;
   final String userid;
-  ListResultScreen({Key key, @required this.category, @required this.userid});
+  ListResultScreen({Key key, @required this.mode ,@required this.category, @required this.userid});
 
   @override
   State createState() => new ListResultState();
@@ -50,7 +51,7 @@ class ListResultState extends State<ListResultScreen> {
   void initState() {
     super.initState();
     _newTitleLabel = widget.category;
-    examService.getResultList(widget.category, widget.userid, this.updateResultList);
+    examService.getResultList(widget.mode, widget.category, widget.userid, this.updateResultList);
     //initPlatformState();
   }
 

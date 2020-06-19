@@ -12,7 +12,7 @@ class AvatarMemo extends StatelessWidget {
   AvatarMemo(this.user);
 
    void _onTap() async {
-      locator<NavigationService>().navigateTo('/${Routes[3].route}/${user.id}');
+      locator<NavigationService>().navigateTo('/${MainRoutes[3].route}/${user.id}');
   }
 
   @override

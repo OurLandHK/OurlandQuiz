@@ -168,7 +168,7 @@ class _SubmitMainState extends State<SubmitMainScreen> {
   }
 
   void _onTap(String category) async {
-    locator<NavigationService>().navigateTo('/${Routes[1].route}/${category}');
+    locator<NavigationService>().navigateTo('/${MainRoutes[1].route}/${category}');
   }
 
   Widget catSet(BuildContext context) {
