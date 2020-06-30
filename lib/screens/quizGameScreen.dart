@@ -23,6 +23,7 @@ import '../models/question.dart';
 import '../models/examResult.dart';
 import '../widgets/questionWidget.dart';
 import '../widgets/reportWidget.dart';
+import '../routing/routeNames.dart';
 import '../main.dart';
 
 //final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
@@ -52,6 +53,7 @@ class QuizGameState extends State<QuizGameScreen> {
   TextStyle _questionTextStyle;
   TextStyle _optionTextStyle;
   String _imageUrl;
+  bool _showBar = true;
 
   final TextEditingController _textController = new TextEditingController();
   //final ScrollController listScrollController = new ScrollController();
@@ -85,7 +87,7 @@ class QuizGameState extends State<QuizGameScreen> {
       //print("question ${question}");
       _questions.add(question);
       const oneTenthSec = const Duration(milliseconds: 100);
-      if(widget.mode == GameModes[FIX_TIME_GAME_INDEX].label) {
+      if(widget.mode == GameModes[FIX_TIME_GAME_INDEX].label || widget.mode == ValidateRoute) {
         if(_questions.length == 1) {
           _maxQuestionTime = TotalQuestionTime;
           _currentQuestionTime = _maxQuestionTime;
@@ -251,20 +253,34 @@ class QuizGameState extends State<QuizGameScreen> {
   }
 
   void sendReport() {
-    setState(() {
-      _gameStage = 3;
-    });
-    String cat = widget.category;
-    if(cat.length == 0) {
-      cat = textRes.LABEL_ALL;
+    if(widget.mode == ValidateRoute)  {
+      // count for pass
+      int pass = 0;
+      _examResult.results.forEach((element) {
+        if(element.correct) {
+          pass++;
+        }
+      });
+      if(pass > 6) {
+        launchURL("https://t.me/StationGroupKeeperBot?start=VALIDATEIONKEY");
+      } else {
+        launchURL("https://t.me/StationGroupKeeperBot?start=INVALIDATE");
+      }
+      onBackPress();
+    } else {
+      setState(() {
+        _gameStage = 3;
+      });
+      String cat = widget.category;
+      if(cat.length == 0) {
+        cat = textRes.LABEL_ALL;
+      }
+      examService.submitExamResult(widget.mode, cat, user, _examResult);
     }
-    print("1 ${widget.mode + cat}");
-    examService.submitExamResult(widget.mode, cat, user, _examResult);
-    print('2');
   }
 
   void validateAnswer(BuildContext context) async {
-    if(widget.mode != GameModes[FIX_TIME_GAME_INDEX].label) {
+    if(widget.mode != GameModes[FIX_TIME_GAME_INDEX].label && widget.mode != ValidateRoute) {
       _timer.cancel();
     }
     _pauseTimer = true;
@@ -287,7 +303,7 @@ class QuizGameState extends State<QuizGameScreen> {
     _examResult.results.add(_result);
     await showResult(context, correct);
     questionIndex++;
-    if(widget.mode == GameModes[FIX_TIME_GAME_INDEX].label && _currentQuestionTime < 1) {
+    if((widget.mode == GameModes[FIX_TIME_GAME_INDEX].label || widget.mode == ValidateRoute) && _currentQuestionTime < 1) {
       sendReport();
     } else {
       if(questionIndex < _questionIDs.length ) {
@@ -349,8 +365,17 @@ class QuizGameState extends State<QuizGameScreen> {
     });
   }
 
+  void _hideBar(BuildContext context) {
+    if(_showBar) {
+      _showBar = false;
+      layoutTemplate.showNaviBar(false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    WidgetsBinding.instance
+      .addPostFrameCallback((_) => _hideBar(context));
     Widget body = null;
     switch(_gameStage) {
       case 1 :  nextQuestion(context);
@@ -475,6 +500,7 @@ class QuizGameState extends State<QuizGameScreen> {
 
   Widget formUI(BuildContext context) {
     double height = MediaQuery.of(context).size.height;
+    int hash = DateTime.now().day;
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
       child: Column(
@@ -491,11 +517,11 @@ class QuizGameState extends State<QuizGameScreen> {
           //answerHeader(context),
           SizedBox(height: (height- 100)/2 - 10 ,
             child: Column(children: [
-              optionWidget(context, 0), 
-              optionWidget(context, 1),
-              optionWidget(context, 2),
-              optionWidget(context, 3),
-              optionWidget(context, 4), 
+              optionWidget(context, hash%5), 
+              optionWidget(context, (hash+1)%5),
+              optionWidget(context, (hash+2)%5),
+              optionWidget(context, (hash+3)%5),
+              optionWidget(context, (hash+4)%5), 
                 
               const SizedBox(height: 1.0),                                        
               _buildSubmit(context)

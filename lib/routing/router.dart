@@ -15,6 +15,7 @@ import '../screens/viewQuestionScreen.dart';
 import '../screens/listQuestionsScreen.dart';
 import '../screens/listResultScreen.dart';
 import '../screens/ViewResultScreen.dart';
+import '../screens/QuizGameScreen.dart';
 
 Route<dynamic> generateRoute(RouteSettings settings) {
   String route = MainRoutes[0].route;
@@ -47,6 +48,10 @@ Route<dynamic> generateRoute(RouteSettings settings) {
     }
     //print('Testing2 ${settings.name}');
     return _getPageRoute(new ViewQuestionScreen(question: question, questionId: path[2]), settings.name);
+  }
+  if(route == ValidateRoute) {
+    //layoutTemplate.showNaviBar(false);
+    return _getPageRoute(new QuizGameScreen(mode: ValidateRoute, category: "", totalQuestion: 2), settings.name);
   }
   if(route == MainRoutes[2].route) {
     

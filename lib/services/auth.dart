@@ -139,6 +139,8 @@ List<String> _POSTIVE_ADJ = [
       "蕙禎"
     ];
 
+final FirebaseAuth _auth = FirebaseAuth.instance;
+
 class AuthService {
   // constructor
   AuthService() {
@@ -156,6 +158,7 @@ class AuthService {
   Future<bool> checkIsSignedIn(String _userID) async {
     DateTime now = DateTime.now();
     if(_userID == null) {
+      AuthResult _res = await _auth.signInAnonymously();
       Random rng = new Random();
       int passcode = rng.nextInt(999999);
       String name = _POSTIVE_ADJ[rng.nextInt(_POSTIVE_ADJ.length)] + _POSTIVE_NAME[rng.nextInt(_POSTIVE_NAME.length)];
@@ -172,9 +175,14 @@ class AuthService {
     } else {
       return getUser(_userID).then((value) {
         if(value != null) {
-          blIsSignedIn = true;
-          user = value;
-          updateUser(user);
+          _auth.currentUser().then((fbUser) {
+            if( fbUser== null) {
+              _auth.signInAnonymously();
+            }
+            blIsSignedIn = true;
+            user = value;
+            updateUser(user);
+          });
         }
         return blIsSignedIn;
       });
@@ -182,9 +190,11 @@ class AuthService {
   }
 
   //Log in using google
+  
   Future<dynamic> googleSignIn() async {
     // Step 1
-    GoogleSignInAccount googleUser = await mobGoogleSignIn.signIn();
+    
+    GoogleSignInAccount googleUser = await GoogleSignIn.games().signIn();
 
     // Step 2
     GoogleSignInAuthentication googleAuth = await googleUser.authentication;
@@ -192,10 +202,11 @@ class AuthService {
       accessToken: googleAuth.accessToken,
       idToken: googleAuth.idToken,
     );
-    AuthResult _res = await mobAuth.signInWithCredential(credential);
-    mobFirebaseUser = _res.user;
+    FirebaseAuth firebaseAuth;
+    AuthResult _res = await firebaseAuth.signInWithCredential(credential);
+    FirebaseUser fbUser= _res.user;
 
-    return mobFirebaseUser;
+    return fbUser;
   }
 
   //Gets the userData
@@ -231,7 +242,7 @@ class AuthService {
   void signOut() {
     //if (!kIsWeb) {
       //For mobile
-      mobAuth.signOut();
+      //mobAuth.signOut();
     /*
     } else {
       //For web
