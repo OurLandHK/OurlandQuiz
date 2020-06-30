@@ -25,7 +25,7 @@ void fieldFocusChange(BuildContext context, FocusNode currentFocus,FocusNode nex
 
 void launchURL(url) async {
   if (await canLaunch(url)) {
-    await launch(url);
+    await launch(url, forceWebView : true);
   } else {
     throw 'Could not launch $url';
   }

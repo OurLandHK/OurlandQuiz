@@ -14,3 +14,4 @@ const List<RouteEntry> MainRoutes =
 
 
 const String QuestionRoute = 'question';
+const String ValidateRoute = 'validate';

@@ -26,7 +26,7 @@ import '../services/questionService.dart';
 import '../services/auth.dart';
 import '../models/question.dart';
 import '../widgets/colorPicker.dart';
-import 'package:open_graph_parser/open_graph_parser.dart';
+import '../helper/openGraphParser.dart';
 
 
 final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();

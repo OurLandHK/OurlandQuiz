@@ -61,10 +61,9 @@ class ExamResult {
     this.userId= map['userId'];
     if(map['createdAt'] != null) {
       try{      
-        this.createdAt = map['createdAt'];
+        this.createdAt = map['createdAt'].toDate();
       } catch (e) {
-        Timestamp timeStamp = map['createdAt'];
-        this.createdAt = timeStamp.toDate();
+        this.createdAt = map['createdAt'];
       }
     } else {
       this.createdAt = DateTime.now();

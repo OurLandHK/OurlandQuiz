@@ -21,6 +21,7 @@ import '../services/questionService.dart';
 import '../services/auth.dart';
 import '../models/question.dart';
 import '../helper/uiHelper.dart';
+import '../widgets/linkPreviewWidget.dart';
 import '../models/userModel.dart';
 import '../widgets/DateTimeWidget.dart';
 import '../widgets/avatarMemo.dart';
@@ -344,13 +345,7 @@ class ViewQuestionState extends State<ViewQuestionScreen> {
       if(this._reference.contains("http")) {
         TextStyle style = Theme.of(context).textTheme.body2;
         style.apply(decoration: TextDecoration.underline);
-        Widget widget1 = Padding(
-          padding: EdgeInsets.all(2.0),
-          child: new Text(this._reference,
-              overflow: TextOverflow.ellipsis,
-              style: style,
-              textAlign: TextAlign.left));
-      return InkWell(child: widget1, onTap: () => launchURL(this._reference));
+        return LinkPreview(link: this._reference, launchFromLink: true, hideLink: false);
 
       } else {
         return TextFormField(

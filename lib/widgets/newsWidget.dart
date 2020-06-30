@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 
 import '../main.dart';
 import '../widgets/newsMemo.dart';
+import '../widgets/linkPreviewWidget.dart';
 import '../models/textRes.dart';
 import '../models/news.dart';
 import '../services/newsService.dart';
@@ -64,21 +65,14 @@ class NewsWidgetState extends State<NewsWidget> {
     } else {
       Widget body = newsSet(context);     
       return ExpansionTile(
-        title: Text(textRes.LABEL_NEWS, style: TextStyle(fontSize: fontSize),),
+        title: Column(
+          children: [Text(textRes.LABEL_NEWS, style: TextStyle(fontSize: fontSize),),
+            LinkPreview(hideLink: true, launchFromLink: true, link: 'https://ourland.hk/recent',)]),
         children: [body],
         initiallyExpanded: initExpanded,
         onExpansionChanged: (value) => sharedPreferences.setBool('newsExpan', value),
       );
     }
-    /*
-    return Container(
-        child: SafeArea(
-          top: false,
-          bottom: false,
-          child: body
-        ),
-      );
-    */
   }
 
   void _addNews() async {

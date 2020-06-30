@@ -118,7 +118,7 @@ class GameModeDialog extends StatelessWidget {
     if(GameModes[FIX_TIME_GAME_INDEX].label == mode) {
       totalQuestion = 30;
     }
-    layoutTemplate.showNaviBar(false);
+    //layoutTemplate.showNaviBar(false);
     Navigator.pop(_context);
     Navigator.push(_context, 
       MaterialPageRoute(
