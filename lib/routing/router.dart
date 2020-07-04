@@ -49,9 +49,13 @@ Route<dynamic> generateRoute(RouteSettings settings) {
     //print('Testing2 ${settings.name}');
     return _getPageRoute(new ViewQuestionScreen(question: question, questionId: path[2]), settings.name);
   }
-  if(route == ValidateRoute) {
+  if(route.contains(ValidateRoute)) {
     //layoutTemplate.showNaviBar(false);
-    return _getPageRoute(new QuizGameScreen(mode: ValidateRoute, category: "", totalQuestion: 2), settings.name);
+    List<String> args = route.split("=");
+    if(args.length == 2) {
+      String key = args[1];
+      return _getPageRoute(new QuizGameScreen(mode: ValidateRoute, category: "", totalQuestion: 4, validateKey: key), settings.name);
+    }
   }
   if(route == MainRoutes[2].route) {
     

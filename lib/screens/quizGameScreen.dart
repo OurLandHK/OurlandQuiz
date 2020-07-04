@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:js' as js;
 //import 'dart:html';
 
 import 'package:flutter/material.dart';
@@ -31,8 +32,9 @@ import '../main.dart';
 class QuizGameScreen extends StatefulWidget {
   final String mode;
   final String category;
-  QuizGameScreen({Key key, @required this.mode, @required this.category, @required this.totalQuestion});
+  QuizGameScreen({Key key, @required this.mode, @required this.category, @required this.totalQuestion, this.validateKey});
   final int totalQuestion;
+  String validateKey;
   //final int totalQuestion = 3;
 
   @override
@@ -80,9 +82,11 @@ class QuizGameState extends State<QuizGameScreen> {
   int _maxQuestionTime = BaseQuestionTime;
   int _beginQuestionTime = BaseQuestionTime;
   bool _pauseTimer = false;
+  int hash = DateTime.now().second;
 
   void nextQuestion(BuildContext context) {
     //print("Next question ID ${this._questionIDs[this.questionIndex]}");
+    hash = DateTime.now().second;
     questionService.getQuestion(this._questionIDs[this.questionIndex]).then((question) {
       //print("question ${question}");
       _questions.add(question);
@@ -261,10 +265,14 @@ class QuizGameState extends State<QuizGameScreen> {
           pass++;
         }
       });
-      if(pass > 6) {
-        launchURL("https://t.me/StationGroupKeeperBot?start=VALIDATEIONKEY");
+      if(pass >= (widget.totalQuestion/2) && widget.validateKey != null) {
+        examService.validateExamResult(widget.validateKey, _examResult);
+      }
+      if (!kIsWeb) {
+        launchURL("https://t.me/StationGroupKeeperBot?start=check");
       } else {
-        launchURL("https://t.me/StationGroupKeeperBot?start=INVALIDATE");
+        print("Use js open in _self");
+        js.context.callMethod("open", ["https://t.me/StationGroupKeeperBot?start=check","_self"]);
       }
       onBackPress();
     } else {
@@ -500,7 +508,6 @@ class QuizGameState extends State<QuizGameScreen> {
 
   Widget formUI(BuildContext context) {
     double height = MediaQuery.of(context).size.height;
-    int hash = DateTime.now().day;
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
       child: Column(
