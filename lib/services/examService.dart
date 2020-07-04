@@ -35,6 +35,10 @@ class ExamService {
     return documentId;
   }
 
+  Future<void> validateExamResult(String validateKey, ExamResult examResult) async {
+    await mobFirestore.collection('check').document(validateKey).setData(examResult.toMap());
+  }
+
   Future<void> submitExamResult(String mode, String category, User user,ExamResult examResult) async{
     try {
       // update for top 20
