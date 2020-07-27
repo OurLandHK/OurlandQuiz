@@ -47,13 +47,12 @@ class QuizGameState extends State<QuizGameScreen> {
   String _newTitleLabel;
 
   int questionIndex = 0;
-  List<String> _questionIDs;
+  List<String> _questionIDs = [];
   ExamResult _examResult;
   Widget _overlayWidget;
   OverlayState _overlayState;
   OverlayEntry _overlayEntry;
   TextStyle _questionTextStyle;
-  TextStyle _optionTextStyle;
   String _imageUrl;
   bool _showBar = true;
 
@@ -118,7 +117,7 @@ class QuizGameState extends State<QuizGameScreen> {
           if(question.totalText() > BaseText) {
             _maxQuestionTime += (((question.totalText() - BaseText) / TextFactor).ceil() * QuestionTimeFactor);
           }
-          print("Total Text ${question.totalText()} , $_maxQuestionTime");
+          //print("Total Text ${question.totalText()} , $_maxQuestionTime");
           _currentQuestionTime = _maxQuestionTime;
           _beginQuestionTime = _maxQuestionTime;
         }
@@ -138,11 +137,9 @@ class QuizGameState extends State<QuizGameScreen> {
       TextStyle qtextStyle = pickTitleTextStyle(context, question.title, question.imageUrl);
       String maxOption = question.options[0];
       question.options.forEach((element) { if(maxOption.length < element.length) maxOption =element; });
-      TextStyle otextStyle = pickOptionTextStyle(context, maxOption);
       setState(() {
         _imageUrl = question.imageUrl;
         _questionTextStyle = qtextStyle;
-        _optionTextStyle = otextStyle;
         _newTitleLabel = "${textRes.LABEL_QUESTION}: ${questionIndex + 1}";
         _options = question.options;
         _textController.text = question.title;
@@ -156,9 +153,10 @@ class QuizGameState extends State<QuizGameScreen> {
   }
 
   TextStyle pickTitleTextStyle(BuildContext context, String text, String imageUrl) {
-    double height = MediaQuery.of(context).size.height;
+    double width = MediaQuery.of(context).size.width;
     double fontSize = 20;
-    double textLenghtFactor = 1 - (text.length / 50) * 0.1;
+    double maxLength = 30 * width / 320;
+    double textLenghtFactor = (text.length > maxLength) ? (maxLength / text.length) : 1;
     fontSize *= textLenghtFactor;
     if(imageUrl != null) {
       fontSize *= 0.75;
@@ -173,11 +171,11 @@ class QuizGameState extends State<QuizGameScreen> {
   }
 
   TextStyle pickOptionTextStyle(BuildContext context, String text) {
-    //double height = MediaQuery.of(context).size.height;
+    double width = MediaQuery.of(context).size.width;
     double fontSize = 16;
-    double textLenghtFactor = 1 - (text.length / 50) * 0.1;
+    double maxLength = 17 * width / 320;
+    double textLenghtFactor = (text.length > maxLength) ? (maxLength / text.length) : 1;
     fontSize *= textLenghtFactor;
-    //print('FontSzint h ${height} fs ${fontSize} ig ${imageUrl} text.lenght${text.length} textLenghtFactio ${textLenghtFactor}');
     TextStyle rv = TextStyle(
               fontFamily: 'Sans',
               fontWeight: FontWeight.normal,
@@ -300,7 +298,6 @@ class QuizGameState extends State<QuizGameScreen> {
       }
     }
     // todo add to user result;
-    //print("${userAnswerSet} ${this._questions[questionIndex].answers.toSet()}");
     int questionTime = _beginQuestionTime - _currentQuestionTime;
     if(userAnswerSet.toSet().intersection(this._questions[questionIndex].answers.toSet()).length !=
     userAnswerSet.toSet().union(this._questions[questionIndex].answers.toSet()).length) {
@@ -327,12 +324,48 @@ class QuizGameState extends State<QuizGameScreen> {
     double height = MediaQuery.of(context).size.height;
     double radius = (width > height) ? height/4 : width/4;
     int wait = 2000;
-    Widget child = null;
-    if(correct) {
-        child = Icon(Icons.check_circle, color: Colors.yellow, size: radius * 2);
-    } else {
-        child = Icon(Icons.clear, color: Colors.blue, size: radius * 2);
+    double fontSize = MediaQuery.of(context).size.width * 0.06;
+    if(fontSize > 40) {
+      fontSize = 40;
     }
+    double smallFontSize = fontSize/1.5;
+    List<Widget> answerList;
+    Widget iconWidget;
+    if(correct) {
+        iconWidget = Icon(Icons.check_circle, color: Colors.yellow, size: radius * 2);
+        answerList = [
+          Text(textRes.LABEL_CORRECT_ANSWER, style: TextStyle(fontSize: fontSize))
+        ];
+    } else {
+        wait = 3000;
+        iconWidget = Icon(Icons.clear, color: Colors.blue, size: radius * 2);
+        answerList = [
+          Text(textRes.LABEL_CORRECT_ANSWER, style: TextStyle(fontSize: fontSize))];
+        this._questions[questionIndex].answers.forEach((element) {
+          answerList.add(Text(element, style: TextStyle(fontSize: smallFontSize)));
+        });
+    }
+    Widget answerWidget = Container(
+      padding: EdgeInsets.all(10.0),
+      decoration: BoxDecoration(
+        color: MEMO_COLORS[this._questions[questionIndex].color + 1 % MEMO_COLORS.length],
+        border: Border.all(width: 1, color: Colors.grey),
+        boxShadow: [
+          new BoxShadow(
+            color: Colors.grey,
+            offset: new Offset(0.0, 2.5),
+            blurRadius: 4.0,
+            spreadRadius: 0.0
+          )
+        ],
+        //borderRadius: BorderRadius.circular(6.0)
+        ),
+      child: Column(
+        children: answerList
+      ),
+    );
+    //Widget child = Column(children :[iconWidget, answerWidget]);
+    Widget child = Column(children :[iconWidget]);
     setState(() {
       _overlayWidget = child;
     });
@@ -348,10 +381,37 @@ class QuizGameState extends State<QuizGameScreen> {
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
     double radius = (width > height) ? height/4 : width/4;
+    double fontSize = MediaQuery.of(context).size.width * 0.1;
+    double smallFontSize = fontSize/2;
+    // display game mode
+    String detailGame = "";
+    setState(() {
+      _overlayWidget = Column(children: [
+        Text(widget.mode, style: TextStyle(fontSize: fontSize)),
+        Text(detailGame, style: TextStyle(fontSize: smallFontSize)),
+      ],mainAxisAlignment: MainAxisAlignment.center);
+    });
+    await Future.delayed(Duration(milliseconds: wait~/5 - 10));
+    // display game mode and how to play
+    GameModes.forEach((element) {
+      if(widget.mode == element.label) {
+        detailGame = element.desc;
+      }
+    });
+    setState(() {
+      _overlayWidget = Column(children: [
+        Text(widget.mode, style: TextStyle(fontSize: fontSize)),
+        Text(detailGame, style: TextStyle(fontSize: smallFontSize)),
+      ],mainAxisAlignment: MainAxisAlignment.center);
+    });
+    await Future.delayed(Duration(milliseconds: wait~/5 - 10));
+
+
+    // ready set go
     setState(() {
       _overlayWidget = Icon(Icons.traffic, color: Colors.red, size: radius * 2);
     });
-    await Future.delayed(Duration(milliseconds: wait~/3 - 10));
+    await Future.delayed(Duration(milliseconds: wait~/5 - 10));
     setState(() {
       _overlayWidget = Container();
     });
@@ -359,7 +419,7 @@ class QuizGameState extends State<QuizGameScreen> {
     setState(() {
       _overlayWidget = Icon(Icons.traffic, color: Colors.yellow, size: radius * 2);
     });
-    await Future.delayed(Duration(milliseconds: wait~/3- 10));
+    await Future.delayed(Duration(milliseconds: wait~/5- 10));
     setState(() {
       _overlayWidget = Container();
     });
@@ -367,7 +427,7 @@ class QuizGameState extends State<QuizGameScreen> {
     setState(() {
       _overlayWidget = Icon(Icons.traffic, color: Colors.blue, size: radius * 2);
     });
-    await Future.delayed(Duration(milliseconds: (wait/3).toInt() - 10));
+    await Future.delayed(Duration(milliseconds: (wait/5).toInt() - 10));
     setState(() {
       _overlayWidget = Container();
     });
@@ -386,17 +446,19 @@ class QuizGameState extends State<QuizGameScreen> {
       .addPostFrameCallback((_) => _hideBar(context));
     Widget body = null;
     switch(_gameStage) {
-      case 1 :  nextQuestion(context);
-                setState(() {
-                  _gameStage = 2;
-                });
-                break;
+      case 1 :  
+        nextQuestion(context);
+        setState(() {
+          _gameStage = 2;
+        });
+        break;
                 
-      case -1 : startTimer(context);
-                setState(() {
-                  _gameStage = 0;
-                });        
-                break;
+      case -1 : 
+        startTimer(context);
+        setState(() {
+          _gameStage = 0;
+        });        
+        break;
     }
     if(_gameStage < 3) {
       body = new WillPopScope(
@@ -490,9 +552,11 @@ class QuizGameState extends State<QuizGameScreen> {
 
   Widget tagUI(BuildContext context) {
     List<Chip> chips = [];
-    this._tags.forEach((tag) {
-      chips.add(Chip(label: Text(tag), labelStyle: Theme.of(context).textTheme.subtitle1));
-    });
+    if(this._tags != null) {
+      this._tags.forEach((tag) {
+        chips.add(Chip(label: Text(tag), labelStyle: Theme.of(context).textTheme.subtitle1));
+      });
+    }
     return Wrap(runSpacing: 2.0, spacing: 6.0, children: chips);
   }
   Widget answerHeader(BuildContext context) {
@@ -508,35 +572,39 @@ class QuizGameState extends State<QuizGameScreen> {
 
   Widget formUI(BuildContext context) {
     double height = MediaQuery.of(context).size.height;
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          //const SizedBox(height: 12.0),
-          SizedBox(height: (height)/2 -10,
-            child: Column(children: [
-              tagUI(context),
-              titleUI(context),
-            ]
-          )),
-          //const SizedBox(height: 2.0),
-          //answerHeader(context),
-          SizedBox(height: (height- 100)/2 - 10 ,
-            child: Column(children: [
-              optionWidget(context, hash%5), 
-              optionWidget(context, (hash+1)%5),
-              optionWidget(context, (hash+2)%5),
-              optionWidget(context, (hash+3)%5),
-              optionWidget(context, (hash+4)%5), 
-                
-              const SizedBox(height: 1.0),                                        
-              _buildSubmit(context)
-            ]
-          ))
-        ],
-      )
-    );
+    Widget rv = Container();
+    if(_gameStage > 1 && _questions.length > 0) {
+      rv = SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            //const SizedBox(height: 12.0),
+            SizedBox(height: (height)/2 -10,
+              child: Column(children: [
+                tagUI(context),
+                titleUI(context),
+              ]
+            )),
+            //const SizedBox(height: 2.0),
+            //answerHeader(context),
+            SizedBox(height: (height- 100)/2 - 10 ,
+              child: Column(children: [
+                optionWidget(context, hash%5), 
+                optionWidget(context, (hash+1)%5),
+                optionWidget(context, (hash+2)%5),
+                optionWidget(context, (hash+3)%5),
+                optionWidget(context, (hash+4)%5), 
+                  
+                const SizedBox(height: 1.0),                                        
+                _buildSubmit(context)
+              ]
+            ))
+          ],
+        )
+      );
+    }
+    return rv;
   }
   Widget _buildSubmit(BuildContext context) {
     String text = "Wait";
@@ -546,8 +614,10 @@ class QuizGameState extends State<QuizGameScreen> {
       stops: [_currentQuestionTime/_maxQuestionTime, _currentQuestionTime/_maxQuestionTime],
       tileMode: TileMode.clamp);
       bool select = false;
-      _answers.forEach((element) {if(element) select = true; });
-      text = "Submit ${_currentQuestionTime/10}";
+      if(_answers != null) {
+        _answers.forEach((element) {if(element) select = true; });
+      }
+      text = "${textRes.LABEL_SUBMIT} ${_currentQuestionTime/10}";
       BoxDecoration decoration = BoxDecoration(
           gradient: gradient,
       );
@@ -572,17 +642,19 @@ class QuizGameState extends State<QuizGameScreen> {
   }
 
   Widget optionWidget(BuildContext context, int index) {
-    bool checked = this._answers[index];
+    bool checked = this._answers != null ? this._answers[index] : false;
     /*
     LinearGradient gradient = LinearGradient(colors: [Colors.yellow , Colors.white],
       stops: checked? [1, 1]: [0, 0],
       tileMode: TileMode.clamp);
     */
+    bool correctAnswer = this._questions[this.questionIndex].answers.contains(this._options[index]);
+    TextStyle otextStyle = pickOptionTextStyle(context, this._options[index]);
     BoxDecoration decoration;
     if(checked) {
       decoration = BoxDecoration(
           //gradient: gradient,
-          border: Border.all(width: 1, color: Colors.red),
+          border: Border.all(width: 2, color: Colors.red),
           color: Colors.white,
         );
     } else {
@@ -592,19 +664,35 @@ class QuizGameState extends State<QuizGameScreen> {
           color: Colors.grey,
         );
     }
+    Widget displayResultWidget = Container();
+    if(_overlayWidget.runtimeType != Container) {
+      if(correctAnswer) {
+        displayResultWidget = Icon(Icons.check_circle, color: Colors.yellow);
+      } else {
+        if(checked) {
+          displayResultWidget = Icon(Icons.clear, color: Colors.blue);
+        }
+      }
+    }
     return SizedBox(
       width: MediaQuery.of(context).size.width - 60,
       height: (MediaQuery.of(context).size.height - 100) / 14,
       child: Container(
         decoration: decoration,
         child: 
-          FlatButton(
-            child: Text(this._options[index], style: _optionTextStyle), 
-            onPressed:  () => {
-              setState(() {
-                this._answers[index] = !this._answers[index];
-            })
-            }
+          Stack(
+            alignment: AlignmentDirectional.centerStart,
+            children: [
+              displayResultWidget,
+              FlatButton(
+                child: Text(this._options[index], style: otextStyle),
+                onPressed:  () => {
+                  setState(() {
+                    this._answers[index] = !this._answers[index];
+                  })
+                }
+              )
+            ]
           )
       )
     );

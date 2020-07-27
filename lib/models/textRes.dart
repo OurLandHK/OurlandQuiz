@@ -26,6 +26,7 @@ class GameModeEntry{
   const GameModeEntry(this.label, this.desc);
 }
 
+const int TIME_ATTACK_GAME_INDEX = 0;
 const int FIX_TIME_GAME_INDEX = 1;
 List<GameModeEntry> GameModes = [GameModeEntry("榮光十問","每條問題限時鬥快答十條"), GameModeEntry("中中中又中","限時${textRes.TOTAL_TIME}秒鬥多答中")];
 
@@ -56,6 +57,7 @@ class TextRes {
   String get LABEL_SUGGEST_ADD_REFERECE => "不如入埋參考";
   String get LABEL_SUGGEST_ADD_DESC => "不如入埋詳情/解題";
   String get LABEL_SUBMIT_QUESTION => "可以提交";
+  String get LABEL_SUBMIT => "提交";
   String get LABEL_PENDING_MESSAGE => "未審批正料: ";
   String get LABEL_APPROVE => "審批";
   String get LABEL_REJECT => "撤回";
