@@ -89,7 +89,7 @@ class ResultModeDialog extends StatelessWidget {
 
   static String _getDocumentId(String mode, String category) {
     String gameModeSuffix = "";
-    if(mode != GameModes[0].label) {
+    if(mode != GameModes[TIME_ATTACK_GAME_INDEX].label) {
       for(int i = 1; i < GameModes.length; i++) {
         if(mode == GameModes[i].label) {
           gameModeSuffix = "_" + i.toString();

@@ -64,7 +64,7 @@ Route<dynamic> generateRoute(RouteSettings settings) {
     }
     List<String> temp = path[2].split("_");
     String cat = temp[0];
-    String mode = GameModes[0].label;
+    String mode = GameModes[TIME_ATTACK_GAME_INDEX].label;
     if(temp.length == 2) {
       String tempMode = temp[1];
       int modeIndex = int.parse(tempMode);
@@ -112,7 +112,7 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       if(path[3] == 'result') {
         List<String> temp = path[4].split("_");
         String cat = temp[0];
-        String mode = GameModes[0].label;
+        String mode = GameModes[TIME_ATTACK_GAME_INDEX].label;
         if(temp.length == 2) {
           String tempMode = temp[1];
           int modeIndex = int.parse(tempMode);
