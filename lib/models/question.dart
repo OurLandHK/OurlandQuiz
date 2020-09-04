@@ -3,117 +3,134 @@ import 'dart:convert';
 import 'textRes.dart';
 
 class Question {
-  String _id;
-  DateTime _lastUpdate;
-  DateTime _created;
-  String _createdUserid;
+  String id;
+  DateTime lastUpdate;
+  DateTime created;
+  DateTime eventDate;
+  String createdUserid;
   String lastUpdateUserid;
   String status;
-  int _color;
-  String _imageUrl;
-  String _bitbucketUrl;
-  String _descImageUrl;
-  String _descBitbucketUrl;
-  String _title;
-  String _explanation;
-  List<dynamic> _tags;
-  List<dynamic> _options;
-  List<dynamic> _answers;
-  String _referenceUrl;
+  int color;
+  String imageUrl;
+  String bitbucketUrl;
+  String descImageUrl;
+  String descBitbucketUrl;
+  String title;
+  String explanation;
+  List<String> tags;
+  List<String> options;
+  List<String> answers;
+  String referenceUrl;
 
-  Question(this._id, this._title, this._options, this._answers, this._createdUserid, this._tags, this._explanation, this._imageUrl, this._bitbucketUrl, this._descImageUrl, this._descBitbucketUrl, this._referenceUrl, this._color) {
-        this._created = DateTime.now();
-        this._lastUpdate = this._created;
-        this.lastUpdateUserid = this._createdUserid;
-        this.status = textRes.QUESTION_STATUS_OPTIONS[0];
+  Question(
+      this.id,
+      this.title,
+      this.options,
+      this.answers,
+      this.createdUserid,
+      this.tags,
+      this.explanation,
+      this.imageUrl,
+      this.bitbucketUrl,
+      this.descImageUrl,
+      this.descBitbucketUrl,
+      this.referenceUrl,
+      this.eventDate, // Date related to the question
+      this.color) {
+    this.created = DateTime.now();
+    this.lastUpdate = this.created;
+    this.lastUpdateUserid = this.createdUserid;
+    this.status = textRes.QUESTION_STATUS_OPTIONS[0];
   }
 
-  String get id => _id;
-  String get imageUrl => _imageUrl;
-  String get bitbucketUrl => _bitbucketUrl;
-  String get descImageUrl => _descImageUrl;
-  String get descBitbucketUrl => _descBitbucketUrl;
-  String get title => _title;
-  String get explanation => _explanation;
-//  List<String> get tags => _tags;
-  List<String> get tags => _tags.cast<String>();
-  List<String> get answers => _answers.cast<String>();
-  List<String> get options => _options.cast<String>();
-
-  DateTime get lastUpdate => _lastUpdate;
-  DateTime get created => _created;
-  String get createdUserid => _createdUserid;
-  int get color => _color;
-  String get referenceUrl => _referenceUrl;
-  
   int totalText() {
     int rv;
     rv = title.length;
-    options.forEach((element) { rv += element.length;});
+    options.forEach((element) {
+      rv += element.length;
+    });
     return rv;
   }
-  
+
   Map<String, dynamic> toMap() {
     var map = new Map<String, dynamic>();
-    map['id'] = _id;
-    map['title'] = this._title;
-    map['lastUpdate'] = this._lastUpdate;
-    map['created'] = this._created;
-    map['createdUserid'] = this._createdUserid;
+    map['id'] = id;
+    map['title'] = this.title;
+    map['lastUpdate'] = this.lastUpdate;
+    map['created'] = this.created;
+    map['createdUserid'] = this.createdUserid;
     map['lastUpdateUserid'] = this.lastUpdateUserid;
-    map['color'] = this._color;
-    map['answers'] = this._answers;
-    map['options'] = this._options;
+    map['color'] = this.color;
+    map['answers'] = this.answers;
+    map['options'] = this.options;
     map['status'] = this.status;
-    if (_imageUrl != null) {
-      map['imageUrl'] = _imageUrl;
+    if (imageUrl != null) {
+      map['imageUrl'] = imageUrl;
+      map['bitbucketUrl'] = bitbucketUrl;
     }
-    if (_bitbucketUrl != null) {
-      map['bitbucketUrl'] = _bitbucketUrl;
+    if (descImageUrl != null) {
+      map['descImageUrl'] = descImageUrl;
+      map['descBitbucketUrl'] = descBitbucketUrl;
     }
-    if (_descImageUrl != null) {
-      map['descImageUrl'] = _descImageUrl;
+    if (this.explanation != null) {
+      map['explanation'] = this.explanation;
     }
-    if (_descBitbucketUrl != null) {
-      map['descBitbucketUrl'] = _descBitbucketUrl;
+    if (this.tags != null) {
+      map['tags'] = this.tags;
     }
-    if (this._explanation!= null) {
-      map['explanation'] = this._explanation;
+    if (this.referenceUrl != null) {
+      map['referenceUrl'] = this.referenceUrl;
     }
-    if (this._tags != null) {
-      map['tags'] = this._tags;
+    if (this.eventDate != null) {
+      map['eventDate'] = this.eventDate;
+      // for search question for this week.
+      map['month'] = this.eventDate.month;
+      map['day'] = this.eventDate.day;
+    } else {
+      // for search question for this week.
+      map['month'] = -1;
+      map['day'] = -1;      
     }
-    if( this._referenceUrl != null) {
-      map['referenceUrl'] = this._referenceUrl;
-    }
+    // enable search for month and date
     return map;
   }
 
   Question.fromMap(Map<String, dynamic> map) {
-    this._id = map['id'];
-    this._imageUrl = map['imageUrl'];
-    this._bitbucketUrl = map['bitbucketUrl'];
-    this._descImageUrl = map['descImageUrl'];
-    this._descBitbucketUrl = map['descBitbucketUrl'];
-    this._title = map['title'];
-    this._tags = map['tags'];
-    this._answers = map['answers'];
-    this._options = map['options'];
-    this._createdUserid = map['createdUserid'];
-    this.lastUpdateUserid =  map['lastUpdateUserid'];
-    this._explanation = map['explanation'];
-    this._referenceUrl = map['referenceUrl'];
-    this._color = map['color'];
+    this.id = map['id'];
+    this.imageUrl = map['imageUrl'];
+    this.bitbucketUrl = map['bitbucketUrl'];
+    this.descImageUrl = map['descImageUrl'];
+    this.descBitbucketUrl = map['descBitbucketUrl'];
+    this.title = map['title'];
+    if (map['tags'] != null) {
+      this.tags = map['tags'].cast<String>();
+    }
+    if (map['answers'] != null) {
+      this.answers = map['answers'].cast<String>();
+    }
+    if (map['options'] != null) {
+      this.options = map['options'].cast<String>();
+    }
+    this.createdUserid = map['createdUserid'];
+    this.lastUpdateUserid = map['lastUpdateUserid'];
+    this.explanation = map['explanation'];
+    this.referenceUrl = map['referenceUrl'];
+    this.color = map['color'];
     this.status = map['status'];
     try {
-      this._created = map['created'].toDate();
-    } catch(Exception) {
-      this._created = map['created'];
+      this.created = map['created'].toDate();
+    } catch (Exception) {
+      this.created = map['created'];
     }
     try {
-      this._lastUpdate = map['lastUpdate'].toDate();
-    } catch(Exception) {
-      this._lastUpdate = map['lastUpdate'];
+      this.eventDate = map['eventDate'].toDate();
+    } catch (Exception) {
+      this.eventDate = map['eventDate'];
+    }
+    try {
+      this.lastUpdate = map['lastUpdate'].toDate();
+    } catch (Exception) {
+      this.lastUpdate = map['lastUpdate'];
     }
   }
 }

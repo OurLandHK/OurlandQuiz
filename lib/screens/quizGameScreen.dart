@@ -607,7 +607,7 @@ class QuizGameState extends State<QuizGameScreen> {
     return rv;
   }
   Widget _buildSubmit(BuildContext context) {
-    String text = "Wait";
+    String text = textRes.LABEL_WAIT;
     Widget button;
     if(!_submitDisable && _currentQuestionTime > 0) {
       LinearGradient gradient = LinearGradient(colors: [Colors.yellow , Colors.blue],

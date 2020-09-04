@@ -43,10 +43,8 @@ class ListQuestionsState extends State<ListQuestionsScreen> {
   String _newTitleLabel;
 
   int questionIndex = 0;
-  List<String> _questionIDs;
   int _color = 9;
   List<Question> _questions = [];
-  List<List<String>> _userAnswers = [];
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   User _user;
 
