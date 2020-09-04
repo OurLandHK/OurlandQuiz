@@ -28,7 +28,7 @@ import '../models/examResult.dart';
 import '../widgets/questionWidget.dart';
 import '../widgets/reportWidget.dart';
 
-final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
+//final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
 class ViewResultScreen extends StatefulWidget {
   final String category;
@@ -124,7 +124,7 @@ class ViewResultState extends State<ViewResultScreen> {
       );
     }
     return new Scaffold(
-      key: _scaffoldKey,
+//      key: _scaffoldKey,
       appBar: new AppBar(
         backgroundColor: Colors.yellow,
         title: new Text(

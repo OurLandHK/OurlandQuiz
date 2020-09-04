@@ -92,7 +92,7 @@ class QuestionWidget extends StatelessWidget {
       }
         
       // Time
-      Widget timeWidget = DateTimeWidget(this.question.created, null, null);
+      Widget timeWidget = DateTimeWidget(this.question.lastUpdate, null, null);
       footers.add(Expanded(flex: 1, child: Container()));
       footers.add(timeWidget);
       

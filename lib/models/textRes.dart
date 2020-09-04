@@ -1,4 +1,5 @@
 import 'dart:ui';
+
 TextRes textRes = TextRes();
 
 final themeColor = Color(0xfff5a623);
@@ -19,7 +20,7 @@ const List<Color> MEMO_COLORS = [
   Color(0xFFD0D0D0),
 ];
 
-class GameModeEntry{
+class GameModeEntry {
   final String label;
   final String desc;
   //final IconData iconData;
@@ -28,7 +29,10 @@ class GameModeEntry{
 
 const int TIME_ATTACK_GAME_INDEX = 0;
 const int FIX_TIME_GAME_INDEX = 1;
-List<GameModeEntry> GameModes = [GameModeEntry("榮光十問","每條問題限時鬥快答十條"), GameModeEntry("中中中又中","限時${textRes.TOTAL_TIME}秒鬥多答中")];
+List<GameModeEntry> GameModes = [
+  GameModeEntry("榮光十問", "每條問題限時鬥快答十條"),
+  GameModeEntry("中中中又中", "限時${textRes.TOTAL_TIME}秒鬥多答中")
+];
 
 class TextRes {
   TextRes();
@@ -69,7 +73,7 @@ class TextRes {
   String get LABEL_TITLE => "榮光教育委員會";
   String get LABEL_VERIFY => "核實";
   String get LABEL_USER_ID => "User ID";
-  String get LABEL_PASSCODE=> "PASSCODE";
+  String get LABEL_PASSCODE => "PASSCODE";
   String get LABEL_ID_PASSCODE_WRONG => "ID 或 Passcode 錯";
   String get LABEL_UPDATE_USER_FAIL => "更新用戶失敗";
   String get LABEL_USER_NAME => "用戶名字";
@@ -90,11 +94,10 @@ class TextRes {
   String get LABEL_NEWS_TITLE => '新聞標題';
   String get LABEL_NEWS_DETAIL => '新聞詳情';
   String get LABEL_UPDATE_NEWS => '新增新聞';
+  String get LABEL_WAIT => '未選答案';
+  String get LABEL_DESC_DATE => '事件日期';
+  String get LABEL_EDIT_QUESTION => '更新問題';
+  String get HINT_DESC_DATE => '如問題特定事件有關，可輸入事件有關日期';
   List<String> get QUESTION_STATUS_OPTIONS => ["等待審批", "撤回", "審批"];
-  List<String> get USER_SETTING_MENU=>["創作清單","設定","登入其他戶口", "個人記錄"];
-
+  List<String> get USER_SETTING_MENU => ["創作清單", "設定", "登入其他戶口", "個人記錄"];
 }
-
-
-
-
