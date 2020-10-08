@@ -54,7 +54,7 @@ Route<dynamic> generateRoute(RouteSettings settings) {
     List<String> args = route.split("=");
     if(args.length == 2) {
       String key = args[1];
-      return _getPageRoute(new QuizGameScreen(mode: ValidateRoute, category: "", totalQuestion: 4, validateKey: key), settings.name);
+      return _getPageRoute(new QuizGameScreen(mode: ValidateRoute, category: "", totalQuestion: 10, validateKey: key), settings.name);
     }
   }
   if(route == MainRoutes[2].route) {
