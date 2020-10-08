@@ -97,6 +97,8 @@ class TextRes {
   String get LABEL_WAIT => '未選答案';
   String get LABEL_DESC_DATE => '事件日期';
   String get LABEL_EDIT_QUESTION => '更新問題';
+  String get LABEL_PASS_VALIDATE => '你過關了，返去要再按/start';
+  String get LABEL_FAIL_VALIDATE => '努力D，再來';
   String get HINT_DESC_DATE => '如問題特定事件有關，可輸入事件有關日期';
   List<String> get QUESTION_STATUS_OPTIONS => ["等待審批", "撤回", "審批"];
   List<String> get USER_SETTING_MENU => ["創作清單", "設定", "登入其他戶口", "個人記錄"];
