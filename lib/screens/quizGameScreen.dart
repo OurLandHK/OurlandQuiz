@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:js' as js;
+import 'dart:ui';
 //import 'dart:html';
 
 import 'package:flutter/material.dart';
@@ -169,7 +170,7 @@ class QuizGameState extends State<QuizGameScreen> {
   TextStyle pickTitleTextStyle(
       BuildContext context, String text, String imageUrl) {
     double width = MediaQuery.of(context).size.width;
-    double fontSize = 20;
+    double fontSize = 22;
     double maxLength = 30 * width / 320;
     double textLenghtFactor =
         (text.length > maxLength) ? (maxLength / text.length) : 1;
@@ -188,7 +189,7 @@ class QuizGameState extends State<QuizGameScreen> {
 
   TextStyle pickOptionTextStyle(BuildContext context, String text) {
     double width = MediaQuery.of(context).size.width;
-    double fontSize = 16;
+    double fontSize = 15.5;
     double maxLength = 17 * width / 320;
     double textLenghtFactor =
         (text.length > maxLength) ? (maxLength / text.length) : 1;
@@ -365,7 +366,7 @@ class QuizGameState extends State<QuizGameScreen> {
       fontSize = 40;
     }
     double smallFontSize = fontSize / 1.5;
-    List<Widget> answerList;
+    List<Widget> answerList = [];
     Widget iconWidget;
     if (correct) {
       iconWidget =
@@ -384,6 +385,7 @@ class QuizGameState extends State<QuizGameScreen> {
             .add(Text(element, style: TextStyle(fontSize: smallFontSize)));
       });
     }
+    /*
     Widget answerWidget = Container(
       padding: EdgeInsets.all(10.0),
       decoration: BoxDecoration(
@@ -402,6 +404,7 @@ class QuizGameState extends State<QuizGameScreen> {
       child: Column(children: answerList),
     );
     //Widget child = Column(children :[iconWidget, answerWidget]);
+    */
     Widget child = Column(children: [iconWidget]);
     setState(() {
       _overlayWidget = child;
@@ -516,8 +519,11 @@ class QuizGameState extends State<QuizGameScreen> {
               children: [
                 reportBody,
                 RaisedButton(
-                    child: Text(_isPass? textRes.LABEL_PASS_VALIDATE : textRes.LABEL_FAIL_VALIDATE),
-                    onPressed: _isPass ? this.backtoGatekeeper : this.onBackPress)
+                    child: Text(_isPass
+                        ? textRes.LABEL_PASS_VALIDATE
+                        : textRes.LABEL_FAIL_VALIDATE),
+                    onPressed:
+                        _isPass ? this.backtoGatekeeper : this.onBackPress)
               ],
             ));
       } else {
@@ -563,31 +569,26 @@ class QuizGameState extends State<QuizGameScreen> {
     );
   }
 
-  Widget titleUI(BuildContext context) {
-    Widget imageWidget = Container();
-    Widget titleWidget = TextFormField(
-      enabled: false,
-      controller: _textController,
-      textInputAction: TextInputAction.next,
+  Widget titleUI(BuildContext context, double questionHeight) {
+    StrutStyle strutStyle = StrutStyle.fromTextStyle(_questionTextStyle);
+    Widget titleWidget = Text(
+      _textController.text + "\n",
+      textHeightBehavior: TextHeightBehavior(
+          applyHeightToFirstAscent: true, applyHeightToLastDescent: true),
       style: _questionTextStyle,
+      strutStyle: strutStyle,
       //textCapitalization: TextCapitalization.words,
-      decoration: InputDecoration(
-        //border: UnderlineInputBorder(),
-        filled: true,
-        //icon: Icon(Icons.live_help),
-        //hintText: textRes.HINT_QUESTION,
-        //labelText: textRes.LABEL_QUESTION,
-      ),
-      minLines: 2,
       maxLines: 10,
     );
+    Column rv = Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [titleWidget, const SizedBox(height: 1.0)]);
     if (_imageUrl != null) {
-      double height = MediaQuery.of(context).size.height;
-      imageWidget =
-          Image.network(_imageUrl, height: (height - 100) * 3 / 8 - 22);
-      titleWidget = Text(_textController.text);
+      Widget imageWidget =
+          Image.network(_imageUrl, height: questionHeight * 0.6);
+      rv.children.add(imageWidget);
     }
-    return Column(children: [titleWidget, imageWidget]);
+    return rv;
   }
 
   Widget tagUI(BuildContext context) {
@@ -613,7 +614,10 @@ class QuizGameState extends State<QuizGameScreen> {
   }
 
   Widget formUI(BuildContext context) {
-    double height = MediaQuery.of(context).size.height;
+    const double questionRatio = 0.55;
+    double height = MediaQuery.of(context).size.height - 100;
+    double questionHeight = height * questionRatio - 10;
+    double answerHeight = height * (1 - questionRatio) - 10;
     Widget rv = Container();
     if (_gameStage > 1 && _questions.length > 0) {
       rv = SingleChildScrollView(
@@ -621,17 +625,17 @@ class QuizGameState extends State<QuizGameScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
+              tagUI(context),
               //const SizedBox(height: 12.0),
               SizedBox(
-                  height: (height) / 2 - 10,
-                  child: Column(children: [
-                    tagUI(context),
-                    titleUI(context),
-                  ])),
+                  height: questionHeight,
+                  child: 
+                    titleUI(context, questionHeight),
+                  ),
               //const SizedBox(height: 2.0),
               //answerHeader(context),
               SizedBox(
-                  height: (height - 100) / 2 - 10,
+                  height: answerHeight,
                   child: Column(children: [
                     optionWidget(context, hash % 5),
                     optionWidget(context, (hash + 1) % 5),
@@ -639,8 +643,9 @@ class QuizGameState extends State<QuizGameScreen> {
                     optionWidget(context, (hash + 3) % 5),
                     optionWidget(context, (hash + 4) % 5),
                     const SizedBox(height: 1.0),
-                    _buildSubmit(context)
-                  ]))
+                    _buildSubmit(context),
+                  ])),
+              const SizedBox(height: 10.0),
             ],
           ));
     }
@@ -722,21 +727,24 @@ class QuizGameState extends State<QuizGameScreen> {
         }
       }
     }
-    return SizedBox(
-        width: MediaQuery.of(context).size.width - 60,
-        height: (MediaQuery.of(context).size.height - 100) / 14,
-        child: Container(
+    return FlatButton(
+        child:SizedBox(
+          width: MediaQuery.of(context).size.width - 60,
+          height: (MediaQuery.of(context).size.height - 100) / 14,
+          child: Container(
             decoration: decoration,
-            child:
-                Stack(alignment: AlignmentDirectional.centerStart, children: [
-              displayResultWidget,
-              FlatButton(
-                  child: Text(this._options[index], style: otextStyle),
-                  onPressed: () => {
-                        setState(() {
-                          this._answers[index] = !this._answers[index];
-                        })
-                      })
-            ])));
+            child: Stack(alignment: AlignmentDirectional.centerStart, children: 
+              [
+                displayResultWidget,
+                Text(this._options[index], style: otextStyle)
+              ]
+            )
+          )
+        ),
+        onPressed: () => {
+          setState(() {
+            this._answers[index] = !this._answers[index];
+           })
+        });
   }
 }
